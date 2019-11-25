@@ -1,0 +1,541 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics VIII Homework Ch16_Textbook
+
+##16.83
+###a
+    Predict the selling price of a single condominium on the 20 floor, we use prediction interval.
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+Floor <- data1$Floor
+Price <- data1$Price
+linearModelVar <- lm(Price ~ Floor)
+cat("# # # # The prediction interval # # # ","\n")
+newdata = data.frame(Floor=20)
+PI <- predict(linearModelVar, newdata, interval="predict")
+print(PI)
+```
+
+    There is 95% chance that the interval [180.004, 259.3586] will cover the real selling price of a 1,200 sq.ft. condominium on the 20th floor.
+    
+###b
+    Predict the average selling price of a condominium on the 15 floor, we use confidence interval.
+```{r}
+newdata1 = data.frame(Floor=15)
+cat("# # # # The confidence interval # # # ","\n")
+CI <- predict(linearModelVar, newdata1, interval="confidence",level = 0.99)
+print(CI)
+```
+
+    There is 99% chance that the interval [204.8826, 219.8261] will cover the real average selling price of a 1,200 sq.ft. condominium on the 15th floor.
+    
+##16.89
+    Predict the price of a single cruiser with 400 hours of engine use, we use prediction interval.
+```{r}
+data2 <- read.csv("Xr16-13.csv",header = 1)
+hours <- data2$Hours
+price <- data2$Price
+linearModelVar <- lm(price ~ hours)
+cat("# # # # The prediction interval # # # ","\n")
+newdata = data.frame(hours=400)
+PI <- predict(linearModelVar, newdata, interval="predict",level = 0.99)
+print(PI)
+```
+    There is 99% chance that the interval [23.32652, 34.34993] will cover the real price of a 1999 24-ft. Sea Ray cruiser with 400 hours of engine use.
+    
+##16.97
+    Predict the mean number of days watching the national news on TV for the population of 70-year-olds, we use confidence interval.
+```{r}
+data3 <- read.csv("Xr16-47.csv",header = 1)
+age <- data3$Age
+days <- data3$Days
+linearModelVar <- lm(days ~ age)
+newdata3 = data.frame(age=70)
+cat("# # # # The confidence interval # # # ","\n")
+CI <- predict(linearModelVar, newdata3, interval="confidence",level = 0.90)
+print(CI)
+```
+    There is 90% chance that the interval [1.891772, 2.103492] will cover the real mean number of days watching the national news on TV for the population of 70-year-olds.
+
+##16.119
+###a
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+Floor <- data1$Floor
+Price <- data1$Price
+
+standarized_errors <- function(y, x) {
+   n <- length(y)
+   linearModelVar <- lm(y ~ x)
+   a <- coef(linearModelVar)[1]
+   b <- coef(linearModelVar)[2]
+   se <- sigma(linearModelVar)
+   x_mean <- mean(x)
+   x_var <- var(x)
+   h <- vector("double", length = n)
+   y_p <- vector("double", length = n)
+   Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   for(i in 1:n) {
+      h[i] <- (1/n) + (x[i] - x_mean)^2 / (x_var * (n - 1))
+      y_p[i] <- a + b * x[i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      }
+    SEh <-cbind(Standard_E,h)
+    return(SEh)
+}
+
+SE <- standarized_errors(Price, Floor)[ ,1]
+hist(SE,main = "Histogram of SE of the Building Price")
+
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+    Because p_value = 0.7527 > 0.05, do not rejected H0. We can assume that errors are normally distributed.
+
+###b
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+Floor <- data1$Floor
+Price <- data1$Price
+
+SE <- standarized_errors(Price, Floor)[ ,1]
+n <- length(Price)
+linearModelVar <- lm(Price ~ Floor)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+Price_p <- vector("double", length = n)
+for(i in 1:n) {
+  Price_p[i] <- a + b * Floor[i]
+}
+plot(x = Price_p,y = SE,  xlab = "Predicted Price",  ylab = "Standardized Error", main = "Predicted Price vs Standard Errors")
+```
+    
+    Conclusion:
+    Do not rejected H0. We can assume that the variation is constant and the mean is around 0.
+    Heteroscedasticity is NOT a problem.
+    
+###Detect the outliers and influential obs:
+```{r}
+SE <- standarized_errors(Price, Floor)[ ,1]
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+h <- standarized_errors(Price, Floor)[,2]
+cat("# # # # Influential Observations # # # ","\n")
+n <- length(Price)
+Inf_Obs <- h > 6/n
+print(Inf_Obs)
+```
+    Conclusion:
+    Samples 3, 21, 50 are outliers because their standardized residuals are larger than 2 or smaller than –2.
+    None of the samples is influential observation because none of their h is larger than 6/(sample size) = 0.1.
+    
+##16.125
+    Do the residual analysis for 16.13:
+###1
+    Normally Test:
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+data2 <- read.csv("Xr16-13.csv",header = 1)
+hours <- data2$Hours
+price <- data2$Price
+standarized_errors <- function(y, x) {
+   n <- length(y)
+   linearModelVar <- lm(y ~ x)
+   a <- coef(linearModelVar)[1]
+   b <- coef(linearModelVar)[2]
+   se <- sigma(linearModelVar)
+   x_mean <- mean(x)
+   x_var <- var(x)
+   h <- vector("double", length = n)
+   y_p <- vector("double", length = n)
+   Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   for(i in 1:n) {
+      h[i] <- (1/n) + (x[i] - x_mean)^2 / (x_var * (n - 1))
+      y_p[i] <- a + b * x[i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      }
+    SEh <-cbind(Standard_E,h)
+    return(SEh)
+}
+
+SE <- standarized_errors(price, hours)[ ,1]
+hist(SE,main = "Histogram of SE of the Boat Price")
+
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+    Because p_value = 0.9057 > 0.05, do not rejected H0. We can assume that errors are normally distributed.
+###2
+    Homoscedasticity or Heteroscedasticity:
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+SE <- standarized_errors(price, hours)[ ,1]
+n <- length(price)
+linearModelVar <- lm(price ~ hours)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+
+Price_p <- vector("double", length = n)
+for(i in 1:n) {
+  Price_p[i] <- a + b * hours[i]
+}
+plot(x = Price_p,y = SE,  xlab = "Predicted Price",  ylab = "Standardized Error", main = "Predicted Price vs Standard Errors")
+#SP <- scatter_plot(price, hours)[ ,1]
+```
+    Conclusion:
+    Do not reject H0. We can assume that the variation is constant and the mean is around 0.
+###3
+    Dependence of the Error Variable:
+    Hypothesis:
+    
+$$
+H_0:\ Randomness\ exists.\\
+H_1:\ Randomness\ does\ not\ exist.
+$$
+
+```{r}
+library(randtests)
+SE <- standarized_errors(price, hours)[ ,1]
+Run_T <- runs.test(SE)
+print(Run_T)
+```
+    Conclusion:
+    Because p-value = 0.2976 > 0.05, Do not reject H0.
+    There is no evidence to infer that the sample is not random.
+###Conclusion
+    All the required conditions are satisfied.
+    
+###Detect the outliers and influential obs:
+```{r}
+SE <- standarized_errors(price, hours)[ ,1]
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+h <- standarized_errors(price, hours)[,2]
+cat("# # # # Influential Observations # # # ","\n")
+n <- length(price)
+Inf_Obs <- h > 6/n
+print(Inf_Obs)
+```
+    Conclusion:
+    Samples 18, 25, 33 are outliers because their standardized residuals are larger than 2 or smaller than –2.
+    None of the samples is influential observation because none of their h is larger than 6/(sample size) = 0.1.
+
+##16.137
+ 
+    Use the steps of simple linear regression: 
+###1
+    Plot the scatter diagram:
+```{r}
+data4 <- read.csv("Xr16-137.csv",header = 1)
+Fund <- data4$Fund
+Gold <- data4$Gold
+plot(Fund,Gold,col="blue",main = " Fund against Gold Price",xlab="Gold Price",ylab="Value of Fund")
+abline(lm(Fund~Gold))
+```
+
+###2
+    Propose a statistical model:
+
+$$
+y\ =\ \beta_0\ +\ \beta_1x\ +\ \varepsilon
+$$
+y = the value of fund
+
+x = the gold price
+
+$\varepsilon$ = error variable
+
+###3    
+    Fit the model:
+```{r}
+linearModelVar <- lm(Fund ~ Gold)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+Gold_mean <- mean(Gold)
+Gold_var <- var(Gold)
+print(summary(linearModelVar))
+```
+    From above, we can tell the regression line:
+$$
+\hat{y}\ =\ -20.20931\ +\ 0.08510 x
+$$
+
+###4
+    Residual analysis:
+a. Standardizing Residuals
+```{r}
+standarized_errors <- function(y, x) {
+   n <- length(y)
+   linearModelVar <- lm(y ~ x)
+   a <- coef(linearModelVar)[1]
+   b <- coef(linearModelVar)[2]
+   se <- sigma(linearModelVar)
+   x_mean <- mean(x)
+   x_var <- var(x)
+   h <- vector("double", length = n)
+   y_p <- vector("double", length = n)
+   Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   for(i in 1:n) {
+      h[i] <- (1/n) + (x[i] - x_mean)^2 / (x_var * (n - 1))
+      y_p[i] <- a + b * x[i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      }
+    SEh <-cbind(Standard_E,h)
+    return(SEh)
+}
+SE <- standarized_errors(Fund, Gold)[ ,1]
+print(SE)
+```
+b. Detect outliers and influential obs
+```{r}
+SE <- standarized_errors(Fund, Gold)[ ,1]
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+h <- standarized_errors(Fund, Gold)[,2]
+cat("# # # # Influential Observations # # # ","\n")
+n <- length(Gold)
+Inf_Obs <- h > 6/n
+print(Inf_Obs)
+
+```
+    Conclusion:
+    Sample 8, 28 are outliers because their standardized residuals are larger than 2 or smaller than –2.
+    Sample 19 is an influential observation because its h is larger than 6/(sample size).
+
+c. Normality Test
+
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+SE <- standarized_errors(Fund, Gold)[ ,1]
+hist(SE,main = "Histogram of SE of the Gold Price")
+
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+    Because p_value = 0.08612 > 0.05, we do not rejected H0. We can NOT infer that errors are not normally distributed.
+
+d. Homoscedasticity or Heteroscedasticity:
+    
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+SE <- standarized_errors(Fund, Gold)[ ,1]
+n <- length(Fund)
+linearModelVar <- lm(Fund ~ Gold)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+Price_p <- vector("double", length = n)
+  for(i in 1:n) {
+    Price_p[i] <- a + b * Gold[i]
+  }
+plot(x = Price_p,y = SE,  xlab = "Predicted Fund",  ylab = "Standardized Error", main = "Predicted Fund vs Standard Errors")
+```
+
+    Conclusion:
+    Do not Rejected H0. We can assume that the variation is constant and the mean is around 0.
+
+e. Dependence of the Error Variable:
+
+    Hypothesis:
+    
+$$
+H_0:\ Randomness\ exists.\\
+H_1:\ Randomness\ does\ not\ exist.
+$$
+
+
+```{r}
+library(randtests)
+SE <- standarized_errors(Fund, Gold)[ ,1]
+Run_T <- runs.test(SE)
+print(Run_T)
+```
+    Conclusion:
+    When n1=14 and n2=14 (both less than 20), the lower bound k1=9 and the upper bound k2=21 (according to the table in the Powerpoint).
+    Since k1=9<Runs=17<k2=21, we don’t reject H0.
+    We can not infer that randomness doesn’t exist.
+
+###5
+    Assess the fitted model:
+
+a. Standard Error of Estimate.
+```{r}
+linearModelVar <- lm(Fund ~ Gold)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+Gold_mean <- mean(Gold)
+Gold_var <- var(Gold)
+print(summary(linearModelVar))
+cat("mean of y = ",mean(Fund))
+
+```
+    Conclusion:
+
+Judge the value of ${\sigma}_{\varepsilon}$ =  0.5575 by comparing it to the sample mean of the dependent variable (y = 11.69714).
+
+So (relatively speaking) it appears to be small, hence our linear regression model of the value of fund as a function of gold price is “good”.
+
+b.Using descriptive measurements, $r^2$ and r.
+
+```{r}
+linearModelVar <- lm(Fund ~ Gold)
+coe_corr <- cor(Fund,Gold)
+rsquared <- summary(linearModelVar)$r.squared
+cat("# # # # The Coefficient of determination # # # ","\n")
+print(rsquared)
+cat("# # # # The Coefficient of coefficient # # # ","\n")
+print(coe_corr)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar)) 
+```
+
+$r^2$ = 0.6287
+
+    62.87% of the variation in the price of the gold is explained by the variation in fund.  The rest (37.13%) remains unexplained by this model.
+```{r}
+r = sqrt(0.6287)
+cat("r = ",+r)
+```
+
+    There is a very strong positive linear relationship (about 79.29%) between the price of the gold and the fund.
+    
+c. Testing and/or estimating the coefficients.
+
+    Hypothesis testing about Beta1:
+    
+$$
+H_0:\beta_1\ =\ 0\\
+H_1:\beta_1\ >\ 0
+$$
+
+    We use t-Test to check if H0 is to be rejected or not.
+    
+```{r}
+linearModelVar <- lm(Fund ~ Gold)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+Gold_mean <- mean(Gold)
+Gold_var <- var(Gold)
+print(summary(linearModelVar))
+```
+
+    Because we are doing right-tail test, p-value = 4.89e-07/2 = 2.45e-07
+    Since p-value = 2.45e-07 < 0.05, we reject H0.
+    We conclude that the relationship between x and y is significant.
+    -
+    Use the t-test of the coefficient of correlation to determine if there is a positive linear relationship between the value of the fund and the price of gold.
+    Hypothesis:
+    
+$$
+H_0:\rho\ =\ 0\\
+H_1:\rho\ \neq\ 0
+$$
+
+```{r}
+data4 <- read.csv("Xr16-137.csv",header = 1)
+Fund <- data4$Fund
+Gold <- data4$Gold
+
+test_cor <- cor.test(Fund, Gold,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Since p-value = 4.885e-07 < 0.05, we reject H0.
+    There is sufficient evidence at a = 5% to infer that there is a  positive linear relationship between the two variables.
+###6    
+    Interpretation:
+$$
+\hat{y}\ =\ b_0\ +\ b_1x\ =\ -20.20931\ +\ 0.08510 x
+$$
+
+a. $b_0$  
+    The intercept, b0, is -20.20931. One interpretation would be that when x = 0 (no fund) the gold price is $-20.20931. However, we have no data for fund with gold price less than 0  on them so this isn’t a correct assessment.
+b. $b_1$  
+    The slope coefficient, b1, is 0.08510, that is, each additional gold price increases the price by $0.08510.
+
+###7
+    Apply for prediction:
+    (1)Predict with 95% confidence the value of fund with gold of 370 dollars.
+    Use prediction interval:
+```{r}
+linearModelVar <- lm(Fund ~ Gold)
+cat("# # # # The prediction interval # # # ","\n")
+newdata = data.frame(Gold=370)
+PI <- predict(linearModelVar, newdata, interval="predict")
+print(PI)
+```
+    There is 95% chance that the interval [10.10353, 12.45042] will cover the real value of fund with gold of 370 dollars.  
+    
+    (2) Estimate with 95% confidence the average fund price with gold of 370 dollars.
+    Use confidence interval:
+```{r}
+cat("# # # # The confidence interval # # # ","\n")
+newdata = data.frame(Gold=370)
+CI <- predict(linearModelVar, newdata, interval="confidence")
+print(CI)
+```
+    There is 95% chance that the interval [ 11.0243, 11.52964] will cover the real average fund price with gold of 370 dollars.
+    
+###Conclusion:
+    We can infer that there is a positive linear relationship between the value of the fund and the price of gold.

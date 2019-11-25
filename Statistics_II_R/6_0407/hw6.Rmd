@@ -1,0 +1,220 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics VI Homework Ch15,19_Textbook
+
+##15.79
+    We use goodness of fit test to check if the data is normally distributed.
+    Also, we have to satisfy the requirement of an expected frequency of at least 5 (rule of five) in each interval.
+    Hypothesis:
+    
+$$
+H_0:The\ data\ follows\ a\ normal\ distribution.\\
+H_1:The\ data\ \ does\ not\ follow\ a\ normal\ distribution.
+$$
+
+```{r}
+alpha = 0.05
+df1 = 5-2-1
+nobs = 100
+f1 = c(10,18,48,16,8)
+t1 = 0
+cv1 = qchisq(1-alpha,df1)
+p1_1 = pnorm(-1.5)
+p1_2 = pnorm(-0.5)-pnorm(-1.5)
+p1_3 = pnorm(0.5)-pnorm(-0.5)
+p1_4 = pnorm(1.5)-pnorm(0.5)
+p1_5 = 1-pnorm(1.5)
+p1 = c(p1_1,p1_2,p1_3,p1_4,p1_5)
+#cat(p1_1,"\n",p1_2,"\n",p1_3,"\n",p1_4,"\n",p1_5,"\n")
+e1 = nobs* p1
+if(sum(e1 < 5) > 0)
+{
+  cat("Reule of Five not meet.\n")
+}else
+{
+  tmp1 = (f1 - e1)^2 /e1
+  chi = sum(tmp1)
+  pv1 = 1 - pchisq(chi,df1)
+}
+
+
+cat("Critical value = ", cv1,"\nTest statistic = ",chi,"\np-value = ",pv1)
+```
+    Since the test statistic > the critical value, there is sufficient evidence to conclude at 5% significance level that the data is not normally distributed.
+    We reject H0.
+    
+##15.85
+    Hypothesis:
+    
+$$
+H_0:The\ data\ follows\ a\ normal\ distribution.\\
+H_1:The\ data\ \ does\ not\ follow\ a\ normal\ distribution.
+$$
+
+```{r}
+df0 <- read.csv("Xr13-95.csv",header = 1)
+n=40
+prob = c(rep(1/8, 8))
+enobs = 40 * prob
+dif=df0$This.Year-df0$Last.Year
+n=length(dif)
+avgdif=mean(dif)
+stdif=sqrt(var(dif)*(n-1)/n)
+input=table(cut((dif-avgdif)/stdif ,qnorm(seq(from=0,to=1,by=1/8))))
+if(sum(enobs < 5) > 0){
+  cat("Rule of Five not meet.\n")
+} else{
+  chisq = sum((input-enobs)^2/enobs)
+  output = 1 - pchisq(chisq, length(input) - 3)
+  cat("p-value=", output)
+}
+```
+    Since pvalue for last year is 0.7307865 > 0.1, we do not reject H0. 
+    There is no enough evidence to infer that the data were not drawn from a normal population.
+##19.15
+    We use Wilcoxon Rank Sum Test to check if changing the name of prunes to dried plums increases the likelihood that shoppers will buy the product.
+    Hypothesis:
+    
+$$
+H_0:The\ population\ locations\ are\ the\ same.\\\
+H_1:The\ location\ of\ population\ 1\ is\ to\ the\ left\ of\ the\ location\ of\ population\ 2.\\
+Population\ 1:Prunes\\
+Population\ 2:Dried\ plums
+$$
+
+```{r}
+df1 <- read.csv("Xr19-15.csv",header = 1)
+nobs = nrow(df1)
+cat("n = ",nobs)
+#large sample case
+#generate rank
+alldata = sort(c(df1[,1], df1[,2]))
+tmpdf = data.frame(raw=alldata, rank=1:length(alldata))
+avgrank = aggregate(tmpdf, by=list(tmpdf$raw), FUN=mean)
+avgrank$Group.1=NULL
+
+samp1=data.frame(raw=df1[,1])
+samp1=merge(samp1, avgrank)
+T=sum(samp1$rank)
+n1=nrow(df1); n2=nrow(df1)
+ET=n1*(n1+n2+1)/2 
+SigmaT=sqrt(n1*n2*(n1+n2+1)/12)
+
+z=(T-ET)/SigmaT
+pvalue = 1-pnorm(z)
+cat("\nE(T)=", ET, "\n")
+cat("Sigma_T=", SigmaT, "\n")
+cat("z value=", z, "\n")
+cat("p-value=", pvalue, '\n')
+
+
+```
+###a
+    Since p-value > 0.05, there is not sufficient evidence to reject the null hypothesis.
+    We can not infer from these data that changing the name increases the likelihood that shoppers will buy the product.
+###b
+    From the test above, we found that sum of rank of the responses of dried plums is not so bigger than tht of prunes. So, it is not neccessary to change the name.
+
+##19.45
+    We use Wilcoxon Rank Sum Test to check if the European car is perceived to be more comfortable than the North American car.
+    Hypothesis:
+    
+$$
+H_0:The\ population\ locations\ are\ the\ same.\\\
+H_1:The\ location\ of\ population\ 1\ is\ to\ the\ right\ of\ the\ location\ of\ population\ 2.\\
+Population\ 1:European\ car\\
+Population\ 2:American\ car
+$$
+
+```{r}
+df2 <- read.csv("Xr19-45.csv",header = 1)
+nobs = nrow(df2)
+cat("n = ",nobs)
+#large sample case
+#generate rank
+alldata = sort(c(df2[,1], df2[,2]))
+tmpdf = data.frame(raw=alldata, rank=1:length(alldata))
+avgrank = aggregate(tmpdf, by=list(tmpdf$raw), FUN=mean)
+avgrank$Group.1=NULL
+
+samp1=data.frame(raw=df2[,1])
+samp1=merge(samp1, avgrank)
+T=sum(samp1$rank)
+n1=nrow(df2); n2=nrow(df2)
+ET=n1*(n1+n2+1)/2 
+SigmaT=sqrt(n1*n2*(n1+n2+1)/12)
+
+z=(T-ET)/SigmaT
+pvalue = 1-pnorm(z)
+cat("\nE(T)=", ET, "\n")
+cat("Sigma_T=", SigmaT, "\n")
+cat("z value=", z, "\n")
+cat("p-value=", pvalue, '\n')
+
+```
+###a
+    Since p-value < 0.05, there is sufficient evidence to reject the null hypothesis.
+    We conclude that the European car is perceived to be more comfortable than the North American car.
+
+###b
+    Since the data is ordinal, the original rank number is meaningless. We'll rerank the data so that the sum of rank will be the same in these two recorded way, and so the results will be identical.
+    
+##19.57
+    We use Wilcoxon Signed Rank Sum Test to test if the location of rating R is to the left of the location of rating PG-13.
+    Hypothesis:
+    
+$$
+H_0:The\ population\ locations\ are\ the\ same.\\\
+H_1:The\ location\ of\ population\ 1\ is\ to\ the\ left\ of\ the\ location\ of\ population\ 2.\\
+Population\ 1:PG-13\\
+Population\ 2:R
+$$
+```{r}
+df3 <- read.csv("Xr19-57.csv",header = 1)
+df3$diff = df3[,1] - df3[,2]
+df3$absdiff = abs(df3$diff)
+
+#Normality test
+hist(df3$diff)
+out3 = shapiro.test(df3$diff)
+print(out3)
+
+x = df3$diff[df3$diff!= 0]
+y = df3$absdiff[df3$absdiff!= 0]
+cat("n = ",length(x))
+#if(sum(df3$absdiff==0)>0) {
+#    stop("Need to remove zero observations!")
+#}
+
+#generate rank
+alldata = sort(y)
+tmpdf = data.frame(raw=alldata, rank=1:length(alldata))
+avgrank = aggregate(tmpdf, by=list(tmpdf$raw), FUN=mean)
+avgrank$Group.1=NULL
+
+#take all positive diff
+ind3 = df3$diff > 0
+samp3=data.frame(raw=df3[ind3,"diff"])
+samp3=merge(samp3, avgrank)
+T=sum(samp3$rank)
+
+n=length(y)
+ET=n*(n+1)/4 
+SigmaT=sqrt(n*(n+1)*(2*n+1)/24)
+
+z=(T-ET)/SigmaT
+pvalue = 1-pnorm(z)
+cat("\nE(T)=", ET, "\n")
+cat("Sigma_T=", SigmaT, "\n")
+cat("z value=", z, "\n")
+cat("p-value=", pvalue, '\n')
+
+```
+    Since p-value of the Shapiro-Wilk normality test < 0.05, the population of differences between the pairs of observation might not be normally distributed, we perform nonparametric test.
+###a
+    Since the p-value > 0.05, we do not reject H0.
+    There is not enough evidence to infer that by adding sexual explicit scenes to the home video version of a movie, they can increase the movies' appeal and profitability.
+###b
+    From the test above, we found that the sum of rank of the responses of adding the sexual explicit scenes is not bigger than that of before. So, we recommended not adding the sexual parts. 

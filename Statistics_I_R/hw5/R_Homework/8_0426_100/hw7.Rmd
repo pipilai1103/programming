@@ -1,0 +1,246 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics VII Homework Ch16_Textbook
+
+##16.7
+###a
+    x = floor numbers of the building
+    y = building price
+    Scatter Diagram of the data:
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+floor <- data1$Floor
+price <- data1$Price
+plot(floor,price,col="blue",main = "Building Price against Floor numbers",xlab="Floor numbers",ylab="Price(in $1,000s)")
+abline(lm(price~floor))
+```
+    The regression line:
+```{r}
+linearModelVar <- lm(price ~ floor)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+floor_mean <- mean(floor)
+floor_var <- var(floor)
+print(summary(linearModelVar))
+
+```
+    From above, we can tell the regression line:
+$$
+\hat{y}\ =\ 190.373\ +\ 1.465x
+$$
+
+###b
+$\hat{y}$ = $b_0$ + $b_1$
+
+The intercept is $b_0$ = 190.373.
+
+$\\b_1$ = 1.465 is the slope of the line. For each additional floor on the building, the price increases by an average of $1.465(*1,000).
+
+##16.13
+    x = Hours that the engine had been run
+    y = Price of Boats
+    Scatter Diagram of the data:
+```{r}
+data2 <- read.csv("Xr16-13.csv",header = 1)
+hours <- data2$Hours
+price <- data2$Price
+plot(hours,price,col="blue",main = "Boat Price against Hours engine had been run",xlab="Hours",ylab="Price(in $1,000s)")
+abline(lm(price~hours))
+```
+    The least squares line:
+```{r}
+linearModelVar <- lm(price ~ hours)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+hours_mean <- mean(hours)
+hours_var <- var(hours)
+print(summary(linearModelVar))
+
+```
+
+    From above, we can tell the least squares line:
+$$
+\hat{y}\ =\ 29.391234\ -\ 0.001383x
+$$
+
+    What the coefficients tell me:
+$\hat{y}$ = $b_0$ + $b_1$
+
+The intercept is $b_0$ = 29.391234
+
+$\\b_1$ = -0.001383 is the slope of the line. For each additional hour the engine had been run, the price decreases by an average of $0.001383(*1,000).
+
+##16.21
+
+If the required conditions are satisfied, then y is normally distributed with mean E(y) = $b_0$ + $b_1$x, and a constant standard deviation ${\sigma}_{\varepsilon}$
+
+${\sigma}_{\varepsilon}$ = 1.889
+
+##16.29
+
+1. Standard Error of Estimate.
+
+2.Using descriptive measurements, $r^2$ and r.
+
+3.Testing and/or estimating the coefficients.
+
+###1
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+floor <- data1$Floor
+price <- data1$Price
+linearModelVar <- lm(price ~ floor)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+floor_mean <- mean(floor)
+floor_var <- var(floor)
+print(summary(linearModelVar))
+cat("mean of y = ",mean(price))
+
+```
+
+Judge the value of ${\sigma}_{\varepsilon}$ = 19.41 by comparing it to the sample mean of the dependent variable (y = 210.42).
+
+So (relatively speaking) it appears to be small, hence our linear regression model of car price as a function of floor number is “good”.
+
+###2
+
+```{r}
+linearModelVar <- lm(price ~ floor)
+coe_corr <- cor(price, floor)
+rsquared <- summary(linearModelVar)$r.squared
+cat("# # # # The Coefficient of determination # # # ","\n")
+print(rsquared)
+cat("# # # # The Coefficient of coefficient # # # ","\n")
+print(coe_corr)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar)) 
+```
+
+$r^2$ = 0.2566
+
+    25.66% of the variation in the price of the building is explained by the variation in floor numbers.  The rest (74.34%) remains unexplained by this model.
+```{r}
+r = sqrt(0.2566)
+cat("r = ",+r)
+```
+    There is a moderately strong positive linear relationship (about 50.66%) between the price of the building and floor numbers.
+    
+###3
+Hypothesis testing about $\beta_1$:
+$$
+H_0:\beta_1\ =\ 0\\
+H_1:\beta_1\ \neq\ 0
+$$
+
+```{r}
+data1 <- read.csv("Xr16-07.csv",header = 1)
+floor <- data1$Floor
+price <- data1$Price
+linearModelVar <- lm(price ~ floor)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+floor_mean <- mean(floor)
+floor_var <- var(floor)
+print(summary(linearModelVar))
+```
+
+    We use t-Test to check if H0 is to be rejected or not.
+    Since p-value = 0.000174 < 0.05, we reject H0.
+    We conclude that the relationship between x and y is significant.
+
+##16.35
+    We use t-Test to test the slope of the data.
+Hypothesis testing about $\beta_1$:
+$$
+H_0:\beta_1\ =\ 0\\
+H_1:\beta_1\ <\ 0
+$$
+
+```{r}
+data2 <- read.csv("Xr16-13.csv",header = 1)
+hours <- data2$Hours
+price <- data2$Price
+linearModelVar <- lm(price ~ hours)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+se <- sigma(linearModelVar)
+hours_mean <- mean(hours)
+hours_var <- var(hours)
+print(summary(linearModelVar))
+
+```
+
+    Since we are doing left-tail test, p-value = 0.177 / 2 = 0.0885
+    Since p-value of the test = 0.0885  > 0.05, we do not reject H0.
+    We conclude that the relationship between x and y is not significant.
+    There is not enough evidence to infer that as the number of hours of engine use increases, the price decreases.
+
+
+##16.41
+    
+    Use the t-test of the coefficient of correlation to determine if linear relationship exists between the number of hours of engine use and the selling price of the used boats.
+    Hypothesis:
+    
+$$
+H_0:\rho\ =\ 0\\
+H_1:\rho\ <\ 0
+$$
+
+```{r}
+data2 <- read.csv("Xr16-13.csv",header = 1)
+hours <- data2$Hours
+price <- data2$Price
+
+test_cor <- cor.test(price, hours,alternative = "less")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Since p-value > 0.05, we do not reject H0.
+    There is no sufficient evidence at a = 5% to infer that there are negative linear relationship between the two variables. 
+
+##16.47
+    x:age of the old people
+    y:the number of days they watched national on TV in a week
+    Data processing:
+```{r}
+data3 <- read.csv("Xr16-47.csv",header = 1)
+age <- data3$Age
+days <- data3$Days
+plot(age,days,col="blue",main = "Age against Days they watched TV",xlab="Age",ylab="Days(in a week)")
+abline(lm(days~age))
+```
+###a
+    Use the t-test of the coefficient of correlation to determine if there is a linear relationship between age and number of days watching national news.
+    Hypothesis:
+    
+$$
+H_0:\rho\ =\ 0\\
+H_1:\rho\ \neq\ 0
+$$
+
+```{r}
+test_cor <- cor.test(days, age)
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Since p-value < 0.05, we reject H0.
+    There is enough evidence at a = 5% to infer that there are linear relationship between the two variables. 
+###b
+```{r}
+linearModelVar <- lm(days ~ age)
+coe_corr <- cor(days, age)
+rsquared <- summary(linearModelVar)$r.squared
+cat("# # # # The Coefficient of determination # # # ","\n")
+print(rsquared)
+```
+Conclusion:
+    58.53% of the variation in the number of days watching national newsis explained by the variation in age. The rest (41.47%) remains unexplained by this model.

@@ -1,0 +1,125 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics IV Homework Ch11_Textbook
+
+##11.3
+    We have to determine that if there is sufficient evidence to prove that we should play shallow, and it depends on whether the batter will hit shallow.
+    H0:the batter will not hit  shallow.
+    H1:the batter will hit shallow.
+    so, 
+    type I error:we assume the batter will hit shallow, but he/she didn't.
+    type II error:we assume the batter will not hit shallow, but he/she did.
+##11.5
+    We have to determine that if I should land the plane immediately.
+    H0:do not land
+    H1:land
+    Type I error:we decide to land, but there is nothing dangerous happen in 5 minutes.
+    Type II error:we deicide not to land, but something dangerous happen in 5 minutes.
+
+##11.11
+    we have to determine that if there is sufficient  evidence to support that mean > 70. 
+```{r}
+m1 = 80
+h0mean = 70
+h0sd = 20
+n = 100
+siglevel = 0.01
+zstat = (m1 - h0mean)/(h0sd/sqrt(n))
+zcv_onetail = qnorm(1 - siglevel)
+p_onetail= pnorm(zstat,lower.tail = FALSE)
+cat("z-stat = ",zstat,"\nz critical value one tail = ",zcv_onetail,"\np-value(one-tail) = ",p_onetail,"\n")
+curve(dnorm(x,h0mean,1),xlim = c(65,75),main = 'Sampling Distribution',xlab = 'sample mean',ylab = " ")
+```
+    since p-value < significant level, we judge the p-value to be small enough to reject that the population mean is 70.
+
+##11.15
+    H0:mean <= 7.5
+    and H1:mean > 7.5
+    we set the significant level = 0.05.
+```{r}
+m1 = 8.5
+h0mean = 7.5
+h0sd = 1.5
+n = 30
+siglevel = 0.05
+zstat = (m1 - h0mean)/(h0sd/sqrt(n))
+zcv_onetail = qnorm(1 - siglevel)
+p_onetail= pnorm(zstat,lower.tail = FALSE)
+cat("z-stat = ",zstat,"\nz critical value one tail = ",zcv_onetail,"\np-value(one-tail) = ",p_onetail,"\nwhen the significant level is 0.05.")
+```
+    since p-value < significant level, we judge the p-value to be small enough to infer that the mean is greater than 7.5.
+##11.29
+###a
+    No, though that sample mean is larger than population mean, but we don't know the sample size and the population standard deviation. So the given information is not enough.
+  
+###b
+    The p-value would be smaller than 0.5. Since we wnat to determine if the mean < 900. But the sample mean is 1050, which is much higher than 900.
+
+##11.35
+```{r}
+samplem = c(15.0,15.5,16.0,16.5,17.0,17.5,18.0,18.5,19.0)
+options(scripen = 999)
+h0mean = 17.09
+h0sd = 3.87
+num = 100
+cnt = 1
+sigxbar = h0sd/sqrt(num)
+zcv_onetail = qnorm(1-0.05)
+pvalue = vector(mode = "numeric", length = 9)
+for(i in 1:9)
+{
+  zstat = (samplem[cnt]-h0mean) / sigxbar
+  pvalue[cnt]= (1-pnorm(zstat))*2
+  cnt = cnt + 1
+}
+table<-data.frame(SampleMean=samplem,pvalue=pvalue)
+table
+```
+##11.45
+```{r}
+data <- read.csv("Xr11-45.csv",header = 1)
+scores <- data$GMAT
+m1 = mean(scores)
+truem = 560
+sd0 = 50
+num = 20
+zvalue = qnorm(1-0.05)
+sigxbar = sd0/sqrt(num)
+lcl = truem - zvalue*sigxbar
+ucl = truem + zvalue*sigxbar
+cat("the sample mean = ",m1,"\nat the 5% significant level, if the mean of the 20 samples is in the interval[",lcl,",",ucl,"], we conclude that the dean's claim is true.")
+```
+    As the result, we conclude that the claim is true.
+##11.55
+    H0:mean <= the Titleist distances
+    H1:mean > the Titleist distances
+    we have to determine that if Nike's distances are farther. 
+```{r}
+data <- read.csv("Xr11-55.csv",header = 1)
+dis <- data$Distance
+m1 = mean(dis)
+m = 230
+sd0 = 10
+num = 100
+zvalue = qnorm(1-0.05)
+sigxbar = sd0/sqrt(num)
+ucl = m + zvalue*sigxbar
+cat("the sample mean = ",m1,"\nat the 5% significant level, if the mean of the 100 samples is higher than",ucl,", we conclude that Nike is correct.")
+```
+    As the result, we conclude that Nike is not correct.
+##11.61
+```{r}
+truemean = 1050
+h0mean = 1000
+h0sd = 50
+n = 25
+sigxbar = h0sd/sqrt(n)
+zvalue = qnorm(1-0.01)
+xc = h0mean+zvalue*sigxbar
+zstat = (xc-truemean)/sigxbar
+b = pnorm(zstat)
+cat("reject H0 if the sample mean >",xc,"\nthe probability of a Type II error is",b)
+```

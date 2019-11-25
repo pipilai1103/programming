@@ -1,0 +1,337 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics 14 Homework Ch20_Textbook
+##20.27
+###a
+```{r}
+#data processing
+data1 <- read.csv("Xr20-27.csv",header = 1)
+period1 <- data1$Period
+quarter1 <- data1$Quarter
+subscribers1 <- data1$Subscribers
+n <- length(subscribers1)
+
+plot(period1, subscribers1, col = "red", main = "Subscribers against Period", xlab = "period", ylab = "subscribers", xlim=range(period1), ylim=range(subscribers1))
+lines(period1, subscribers1, type="o", col = "red")
+```
+
+###b
+1. Centered moving average
+```{r}
+Center_Moving_Average <- function(x, q, s) {
+   k <- length(x)
+   y <- vector("double", length = k)
+   SE <- vector("double", length = k)
+   SI <- vector("double", length = s)
+   if(s %% 2 == 0){
+      lb = s / 2
+      lb2 = lb + 1
+      ub = k - (s / 2)
+      cmv_y <- vector("double", length = k)
+      for(i in lb:ub) {
+         sum_x = 0
+         lb_cmv = i - lb + 1
+         ub_cmv = i + lb
+         for(j in lb_cmv:ub_cmv){
+            sum_x <- sum_x + x[j]
+         }
+         cmv_y[i] <- sum_x / s
+      }
+      for(i in lb2:ub) {
+         y[i] <- (cmv_y[i-1] + cmv_y[i]) / 2
+         SE[i] <- x[i] / y[i]
+         SI[q[i]] <- SI[q[i]] + SE[i]
+      }
+      SI <- SI / ((k / s) - 1)
+      sum_SI <- sum(SI)
+      SI <- SI * s / sum_SI
+   } else {
+   lb = ceiling(s / 2) 
+   ub = k - floor(s / 2)
+   for(i in lb:ub) {
+      sum_x = 0
+      lb_cmv = i - lb + 1
+      ub_cmv = i + lb - 1
+      for(j in lb_cmv:ub_cmv){
+         sum_x <- sum_x + x[j]
+      }
+      y[i] <- sum_x / s
+      SE[i] <- x[i] / y[i]
+      SI[q[i]] <- SI[q[i]] + SE[i]
+   }
+   SI <- SI / ((k / s) - 1)
+   sum_SI <- sum(SI)
+   SI <- SI * s / sum_SI
+}
+return(SI)
+}
+Forecast_by_SI <- function(x, q, s, SI, t) {
+   k <- length(x)
+   Des_x <- vector("double", length = k)
+   for(i in 1:k) {
+      Des_x[i] <- x[i] / SI[q[i]]
+   } 
+   linearModelVar <- lm(Des_x ~ t)
+   b0 <- coef(linearModelVar)[1]
+   b1 <- coef(linearModelVar)[2]
+   new_k <- k + s
+   new_lb <- k + 1
+   Q_t <- vector("double", length = new_k)
+   SI_Q_t <- vector("double", length = new_k)
+   for(i in 1:k) {
+      Q_t[i] <- q[i]
+   }
+   for(j in new_lb:new_k) {
+      Q_t[j] <- j - k
+   }
+   for(i in 1:new_k) {
+      SI_Q_t[i] <- SI[Q_t[i]]
+   }
+   F_t <- 0:(new_k - 1)
+   des_y <- b0 + b1 * F_t
+   y <- des_y * SI_Q_t
+   plot(t, x, col = "blue", main = "Subscribers against period", xlab = "period", ylab = "x", xlim=range(t, F_t, new_k), ylim=range(x, Des_x, des_y, y, 0))
+	lines(t, x, type="o", col = "blue")
+	lines(t, Des_x, type="o", col = "red")
+	lines(F_t, des_y, type="o", col = "green")
+	lines(F_t, y, type="o", col = "black")
+
+   return(y)
+}
+```
+
+```{r}
+n <- length(subscribers1)
+Season <- max(quarter1)
+CMV_SI <- Center_Moving_Average(subscribers1, quarter1, Season)
+cat("# # # # The Centered moving average seasonal index # # # ","\n")
+print(CMV_SI)
+Subscribers_y_1 <- Forecast_by_SI(subscribers1, quarter1, Season, CMV_SI, period1)
+cat(" ","\n")
+cat("# # # # The Subscribers_y # # # ","\n")
+print(Subscribers_y_1)
+```
+
+2. Linear regression
+```{r}
+Linear_Regression_Seasonal_Index <- function(x, q, s) {
+   k <- length(x)
+   SE <- vector("double", length = k)
+   SI <- vector("double", length = s)
+   t <- 0:(k - 1)
+   linearModelVar <- lm(x ~ t)
+   b0 <- coef(linearModelVar)[1]
+   b1 <- coef(linearModelVar)[2]
+   y <- b0 + b1 * t
+   for(i in 1:k) {
+      SE[i] <- x[i] / y[i]
+      SI[q[i]] <- SI[q[i]] + SE[i]
+   }
+   SI <- SI / ((k / s) - 1)
+   sum_SI <- sum(SI)
+   SI <- SI * s / sum_SI
+   return(SI)
+}
+```
+
+```{r}
+n <- length(subscribers1)
+Season <- max(quarter1)
+SLR_SI <- Linear_Regression_Seasonal_Index(subscribers1, quarter1, Season)
+cat("# # # # The Simple Linear_Regression seasonal index # # # ","\n")
+print(SLR_SI)
+cat(" ","\n")
+Subscribers_y_2 <- Forecast_by_SI(subscribers1, quarter1, Season, SLR_SI, period1)
+cat("# # # # The Subscribers_y # # # ","\n")
+print(Subscribers_y_2)
+```
+
+3. Dummy variable
+```{r}
+n <- length(subscribers1)
+Season <- max(quarter1)
+#
+Dummy_I <- Season - 1
+Q <- matrix(nrow =n, ncol = Dummy_I)
+Dummy_Name <- vector("character", length = Dummy_I)
+for(i in 1:Dummy_I){
+  Dummy_Name[i] <- paste0("Q", i)
+}
+colnames(Q) <- Dummy_Name
+for(i in 1:n){
+  for(j in 1:Dummy_I){
+    if(quarter1[i] == j){
+      Q[i,j] <- 1
+    } else {
+      Q[i,j] <- 0
+    }  
+  }
+}
+#
+Data.Subscribers <- cbind(period1, Q)
+linearModelVar <- lm(subscribers1 ~ Data.Subscribers)
+cat(" ","\n")
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+cat(" ","\n")
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+NoB <- Dummy_I + 2
+bi <- vector("double", length = NoB)
+for(i in 1:NoB){
+  bi[i] <- coef(linearModelVar)[i]
+}
+b0 <- vector("double", length = n)
+for(j in 1:n) {
+    b0[j] <- 1
+}
+Data.Subscribers_0 <- cbind(b0, Data.Subscribers)
+y_Dummy <- c(Data.Subscribers_0 %*% bi)
+cat(" ","\n")
+cat("# # # # The Subscribers_y # # # ","\n")
+print(y_Dummy)
+
+```
+
+```{r}
+Mean_Absolute_Deviation <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      Sum_E <- Sum_E + abs(x[i] - y[i])
+   }
+   MAD <- Sum_E / (k - s + 1)
+   return(MAD)
+}
+Mean_Square_Error <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      Sum_E <- Sum_E + (x[i] - y[i])^2
+   }
+   MSE <- Sum_E / (k - s + 1)
+   return(MSE)
+}
+Mean_Absolute_Percentage_Error <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      if(x[i] != 0) {
+         Sum_E <- Sum_E + abs(x[i] - y[i])/x[i]
+      } else {
+         Sum_E <- Sum_E + abs(x[i] - y[i])/mean(x)
+         }	
+     }
+   MAPE <- Sum_E / (k - s + 1) * 100
+   return(MAPE)
+}
+```
+
+```{r}
+CMV_MAD <- Mean_Absolute_Deviation(subscribers1, Subscribers_y_1, 4)
+CMV_MSE <- Mean_Square_Error(subscribers1, Subscribers_y_1, 4)
+CMV_MAPE <- Mean_Absolute_Percentage_Error(subscribers1, Subscribers_y_1, 4)
+SLR_MAD <- Mean_Absolute_Deviation(subscribers1, Subscribers_y_2, 4)
+SLR_MSE <- Mean_Square_Error(subscribers1, Subscribers_y_2, 4)
+SLR_MAPE <- Mean_Absolute_Percentage_Error(subscribers1, Subscribers_y_2, 4)
+DUM_MAD <- Mean_Absolute_Deviation(subscribers1, y_Dummy, 4)
+DUM_MSE <- Mean_Square_Error(subscribers1, y_Dummy, 4)
+DUM_MAPE <- Mean_Absolute_Percentage_Error(subscribers1, y_Dummy, 4)
+Error_M <- matrix(nrow = 3, ncol = 3)
+colnames(Error_M) = c("CMV", "SLR", "Dummy")
+rownames(Error_M) = c("MAD", "MSE", "MAPE")
+Error_M[1,1] <- CMV_MAD
+Error_M[1,2] <- SLR_MAD
+Error_M[1,3] <- DUM_MAD
+Error_M[2,1] <- CMV_MSE
+Error_M[2,2] <- SLR_MSE
+Error_M[2,3] <- DUM_MSE
+Error_M[3,1] <- CMV_MAPE
+Error_M[3,2] <- SLR_MAPE
+Error_M[3,3] <- DUM_MAPE
+cat("     ","\n")
+cat("# # # # Error Metrix # # # ","\n")
+print(Error_M)
+```
+
+From the printout, the best forecast method for this problem is Dummy.
+
+##20.47
+
+```{r}
+#data processing
+data2 <- read.csv("Xr20-47.csv",header = 1)
+year <- data2$Year
+period <- data2$Period
+quarter <- data2$Quarter
+revenues <- data2$Revenues
+
+n <- length(revenues)
+plot(period, revenues, col = "red", main = "Revenues against Period", xlab = "period", ylab = "revenues", xlim=range(period), ylim=range(revenues))
+lines(period, revenues, type="o", col = "red")
+```
+```{r}
+#myts <- ts(revenues, start=c(year[1], 1), end=c(year[n], 4), frequency=4)
+#plot(myts, xaxt = "n", col = "blue", main = "Revenues against Year", xlab = "Year.Quarter", ylab = "Revenues(in $millions)")
+#tsp = attributes(myts)$tsp
+
+#year_quarter = seq(as.Date("2012-01-Q1"), by = "quarter", along = myts)
+#axis(1, at = seq(tsp[1], tsp[2], along = myts), labels = format(year_quarter, "%Y-%m"))
+
+```
+
+##20.48
+Because there's seasonal effect. The seasonal component of the time-series exhibits a short term calendar repetitive behavior.
+Since exponential smoothing does not consider this effect, it's not a recommended method.
+
+##20.49
+
+$$
+y = \beta_0+\beta_1t+\varepsilon
+$$
+$y$ = revenues(in $millions)
+
+$t$ = period
+
+$\varepsilon$ = error variable
+
+```{r}
+n <- length(revenues)
+period2 <- vector("integer",length = n)
+for(i in 1:n)
+{
+  period2[i] <- period[i]-1
+}
+linearModelVar <- lm(revenues ~ period2)
+print(summary(linearModelVar))
+```
+
+$$
+\hat{y} = 20.943+0.732t
+$$
+
+##20.50
+Use centered moving averages mothod to do this.
+
+```{r}
+n <- length(revenues)
+Season <- max(quarter)
+CMV_SI <- Center_Moving_Average(revenues, quarter, Season)
+cat("# # # # The Centered moving average seasonal index # # # ","\n")
+print(CMV_SI)
+```
+
+##20.51
+```{r}
+Revenues_y <- Forecast_by_SI(revenues, quarter, Season, CMV_SI, period2)
+cat("# # # # The Revenues_y # # # ","\n")
+print(Revenues_y)
+```
+
+
+
+
+

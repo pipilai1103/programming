@@ -1,0 +1,864 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics X Homework Ch17_Textbook
+
+##17.3
+###a
+```{r}
+#data processing
+data1 <- read.csv("Xr17-03.csv",header = 1)
+drywall <- data1$Drywall
+permits <- data1$Permits
+mortgage <- data1$Mortgage
+a_vacancy <- data1$A.Vacancy
+o_vacancy <- data1$O.Vacancy
+
+#Scatter diagram
+plot(permits,drywall,col="blue",main = " Sales of Drywall against Permits",xlab="Number of permits",ylab="Sales of drywall(in 100 of 4*8 sheets)")
+abline(lm(drywall~permits))
+
+plot(mortgage,drywall,col="blue",main = " Sales of Drywall against Mortage Rates",xlab="Mortage Rate(in %)",ylab="Sales of drywall(in 100 of 4*8 sheets)")
+abline(lm(drywall~mortgage))
+
+plot(a_vacancy,drywall,col="blue",main = " Sales of Drywall against Vacancy Rate in Apartments",xlab="Vacancy Rate in Apartments(in %)",ylab="Sales of drywall(in 100 of 4*8 sheets)")
+abline(lm(drywall~a_vacancy))
+
+plot(o_vacancy,drywall,col="blue",main = " Sales of Drywall against Vacancy Rate in Office Buildings",xlab="Vacancy Rate in Office Buildings(in %)",ylab="Sales of drywall(in 100 of 4*8 sheets)")
+abline(lm(drywall~o_vacancy))
+
+#
+n <- length(drywall)
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+linearModelVar <- lm(drywall ~ Data.Drywall)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+
+```
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x_1\ +\ \beta_2x_2\ +\ \beta_3x_3\ +\ \beta_4x_4\ +\ \varepsilon
+$$
+
+y = the monthly sales of drywall(in 100 of 4*8 sheets)
+
+$x_1$ = the number of building permits issued in the county
+
+$x_2$ = 5-year mortage rates(in %)
+
+$x_3$ = vacancy rate in apartments(in %)
+
+$x_4$ = vacancy rate in office buildings(in %)
+
+$\varepsilon$ = error variable
+
+    From the printout, we can get the multiple regression model:
+
+$$
+\hat{y} =\ -111.828\ +\ 4.763x_1 \ +\  16.988x_2\ -\ 10.528 x_3\ +\ 1.308 x_4\ 
+$$
+##-1
+###b
+From the printout, $s_{\varepsilon}$ = 40.13
+We can use this statistic to assess the model's fit by comparing to the mean of y.
+```{r}
+cat("mean of y = ",mean(drywall))
+```
+
+It seems that $s_{\varepsilon}$ is small compared to $\bar{y}$ = 230.96.
+We can conclude the model fit the data well.
+
+##answer
+
+The standard error of estimate is = 40.13. It is an estimate of the standard deviation of the error variable. Relative to the values of the dependent variable the standard error of estimate appears to be large indicating a weak linear relationship.
+
+###c
+From the print out, the coefficient of determination $r^2$ is 0.8935.
+
+The adjusted coefficient of determination 0.8711 is close to 0.8935( $\leq$ 0.06), indicating that the model has no problem of over-fitting.
+
+According to the coefficient of determination, we can say that 89.35% of the variation in sales of drywall is explained by this regression line of the 4 independent variables and 10.65% remains unexplained.
+
+###d
+We use the F-test of ANOVA to test the validity of the model.
+    Hypothesis:
+
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ \beta_4\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+```{r}
+linearModelVar <- lm(drywall ~ Data.Drywall)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+    Conclusion:
+Since p value 5.448e-09 < 0.05, we reject $H_0$.
+There is sufficient evidence to say that at least one of the $b_i$ is not equal to zero. Thus, at least one independent variable is related to y. This regression model is valid.
+
+###e
+    Interpret:
+$$
+\hat{y}\ =\ b_0\ +\ b_1x_1\ +\ b_2x_2\ +\ b_3x_3\ +\ b_4x_4\\
+=\ -111.828\ +\ 4.763x_1 \ +\  16.988x_2\ -\ 10.528 x_3\ +\ 1.308 x_4\ 
+$$
+
+    
+1. $b_0$  
+$b_0$ = -111.828. This is the intercept, the value of y when all the variables take the value zero. Since the data range of all the independent variables do not cover the value zero, do not interpret the intercept.
+
+2. $b_1$  
+$b_1$ = 4.763. In this model, for each additional number of building permits, the sales of drywall increases on the average by 4.763  $hundred\ sheets$ (assuming the other variables are held constant).
+
+3. $b_2$  
+$b_2$ = 16.988. In this model, for each additional mortgage rate(in %), the sales of drywall increases on the average by 16.988 $hundred\ sheets$ (assuming the other variables are held constant).
+
+4. $b_3$  
+$b_3$ = -10.528. In this model, for each additional vacancy rate(in %) in apartments, the sales of drywall decreases on the average by 10.528 $hundred\ sheets$ (assuming the other variables are held constant).
+
+5. $b_4$  
+$b_4$ = 1.308. In this model, for each additional vacancy rate(in %) in office buildings, the sales of drywall increases on the average by 1.308 $hundred\ sheets$ (assuming the other variables are held constant).
+
+###f
+
+Use the t-test of the coefficient of correlation to determine if each $b_i$ is linearly related to drywall demand.
+    Hypothesis for each independent variable:
+    
+$$
+H_0:\rho\ =\ 0\\
+H_1:\rho\ \neq\ 0
+$$
+For $b_1$:
+```{r}
+test_cor <- cor.test(drywall, permits,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Conclusion:
+Since p-value = 3.27e-11 < 0.05, we reject H0.
+There is sufficient evidence at a = 5% to infer that there is a linear relationship between $b_1$ and y.
+
+For $b_2$:
+```{r}
+test_cor <- cor.test(drywall, mortgage,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Conclusion:
+Since p-value = 0.6687 > 0.05, we do not reject H0.
+There is no sufficient evidence at a = 5% to infer that there is a linear relationship between $b_2$ and y.
+
+For $b_3$:
+```{r}
+test_cor <- cor.test(drywall, a_vacancy,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Conclusion:
+Since p-value = 0.2127 > 0.05, we do not reject H0.
+There is no sufficient evidence at a = 5% to infer that there is a linear relationship between $b_3$ and y.
+
+For $b_4$:
+```{r}
+test_cor <- cor.test(drywall, o_vacancy,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+    Conclusion:
+Since p-value = 0.7459 > 0.05, we do not reject H0.
+There is no sufficient evidence at a = 5% to infer that there is a linear relationship between $b_4$ and y.
+
+###g
+Predict next month's drywall sales with 95% confidence if the number of building permits is 50, the 5-year mortgage rate is 9.0%, and the vacancy rates are 3.6% in apartments and 14.3% in office buildings.
+    Use prediction interval:
+```{r}
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+linearModelVar <- lm(drywall ~ Data.Drywall)
+newdata = data.frame(Data.Drywall <- cbind(50, 9,3.6,14.3) )
+PI <- predict(linearModelVar, newdata, interval="predict")
+cat("# # # # The prediction interval # # # ","\n")
+print(PI)
+```
+    Conclusion:
+At 95% confidence level, the interval, [167.1212, 352.9296], covers the next month's drywall sales if the number of building permits is 50, the 5-year mortgage rate is 9.0%, and the vacancy rates are 3.6% in apartments and 14.3% in office buildings.
+
+##Residual Analysis
+
+    Standardized residuals:
+```{r}
+standarized_errors_MR <- function(y, x) {
+   n <- length(y)
+   k <- ncol(x)
+   x1 <- vector("double", length = n)
+   for(j in 1:n) {
+      x1[j] <- 1
+      }
+   Matrix_X <- cbind(x1, x)
+   Matrix_Y <- cbind(y)
+   Matrix_H <-  Matrix_X%*%solve(t(Matrix_X)%*%Matrix_X)%*%t(Matrix_X)
+   Matrix_YP <-  Matrix_H%*%Matrix_Y
+   y_p <- Matrix_YP[,1]
+   h <- vector("double", length = n)
+   D <- vector("double", length = n)
+      Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   se <- sqrt(sum((y - y_p)^2)/(n - k - 1))
+   for(i in 1:n) {
+      h[i] <- Matrix_H[i,i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      D[i] <- (y[i] - y_p[i])^2 * h[i] / ((k -1) * se^2 * (1 - h[i])^2)
+      }
+   SEhD <- cbind(Standard_E, h, D)
+   return(SEhD)
+}
+#
+n <- length(drywall)
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+linearModelVar <- lm(drywall ~ Data.Drywall)
+SE <- standarized_errors_MR(drywall, Data.Drywall)[,1]
+h <- standarized_errors_MR(drywall, Data.Drywall)[,2]
+D <- standarized_errors_MR(drywall, Data.Drywall)[,3]
+print(SE)
+```
+1. Normality
+
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+SE <- standarized_errors_MR(drywall, Data.Drywall)[,1]
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+Because p_value = 0.6351 > 0.05, we do not rejected H0. We can NOT infer that errors are not normally distributed.
+    
+2. Homoscedasticity or Heteroscedasticity
+
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+n <- length(drywall)
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+linearModelVar <- lm(drywall ~ Data.Drywall)
+SE <- standarized_errors_MR(drywall, Data.Drywall)[,1]
+
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+c <- coef(linearModelVar)[3]
+d <- coef(linearModelVar)[4]
+e <- coef(linearModelVar)[5]
+Price_p <- vector("double", length = n)
+  for(i in 1:n) {
+    Price_p[i] <- a + b * permits[i] + c * mortgage[i] + d * a_vacancy[i] + e * o_vacancy[i]
+  }
+plot(x = Price_p,y = SE,  xlab = "Predicted Drywall Demand(in 100 of 4*8 sheets)",  ylab = "Standardized Error", main = "Predicted Drywall Demand vs Standard Errors")
+```
+
+Conclusion:
+Do not Rejected H0. We can assume that the variation is constant and the mean is around 0.
+
+3. Dependence of the Error Variable
+
+    Hypothesis:
+    
+$$
+H_0:\ Randomness\ exists.\\
+H_1:\ Randomness\ does\ not\ exist.
+$$
+
+
+```{r}
+library(randtests)
+SE <- standarized_errors_MR(drywall, Data.Drywall)[,1]
+Run_T <- runs.test(SE)
+print(Run_T)
+```
+Conclusion:
+When n1=12 and n2=12 (both less than 20), the lower bound k1=7 and the upper bound k2=19 (according to the table in the Powerpoint).
+Since k1=7< Runs=14 < k2=19, we don’t reject H0.
+There is no evidence to infer that the sample is not random.
+
+##Outliers and Influential Obs
+```{r}
+n <- length(drywall)
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+linearModelVar <- lm(drywall ~ Data.Drywall)
+SE <- standarized_errors_MR(drywall, Data.Drywall)[,1]
+h <- standarized_errors_MR(drywall, Data.Drywall)[,2]
+D <- standarized_errors_MR(drywall, Data.Drywall)[,3]
+#
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+cat("     ","\n")
+cat("# # # # Influential Observations by h # # # ","\n")
+k <- dim(Data.Drywall)[2]
+Inf_Obs <- h > 3*(k+1)/n
+print(Inf_Obs)
+cat("     ","\n")
+cat("# # # # Influential Observations # # # ","\n")
+Inf_Obs <- D > 1
+print(Inf_Obs)
+```
+Conclusion:
+Samples 1,4  are outliers because their standardized residuals are larger than 2 or smaller than –2.
+None of the samples is influential observation because neither of their h is larger than 3*(k+1)/n or $D_i$ > 1.
+
+##17.7
+
+###a
+```{r}
+#data processing
+data2 <- read.csv("Xr17-07.csv",header = 1)
+sales <- data2$Sales
+direct <- data2$Direct
+newspaper <- data2$Newspaper
+TV <- data2$Television
+##Scatter diagram
+plot(direct,sales,col="blue",main = " Sales against Direct Mailing",xlab="expenditures on direct mailing(in $1,000)",ylab="gross mailing(in $1,000)")
+abline(lm(sales~direct))
+
+plot(newspaper,sales,col="blue",main = " Sales against Newspaper Advertising",xlab="expenditures on newspaper advertising(in $1,000)",ylab="gross mailing(in $1,000)")
+abline(lm(sales~newspaper))
+
+plot(TV,sales,col="blue",main = " Sales against TV commercials",xlab="expenditures on TV commercials(in $1,000)",ylab="gross mailing(in $1,000)")
+abline(lm(sales~TV))
+#
+n <- length(sales)
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x_1\ +\ \beta_2x_2\ +\ \beta_3x_3\ +\ \varepsilon
+$$
+
+y = sales(in $1,000)
+
+$x_1$ = expenditures on direct mailing(in $1,000)
+
+$x_2$ = expenditures on newspaper advertising(in $1,000)
+
+$x_3$ = expenditures on TV commercials(in $1,000)
+
+$\varepsilon$ = error variable
+
+    From the printout, we can get the multiple regression equation:
+
+$$
+\hat{y} =\ 12.3084\ +\ 0.5699x_1 \ +\  3.3200 x_2\ +\ 0.7322x_3
+$$
+
+###b
+From the print out, the coefficient of determination $r^2$ is 0.1953.
+
+According to the statistic, we can say that 19.53% of the variation in sales is explained by this regression line of the 3 independent variables and 80.47% remains unexplained.
+
+The adjusted coefficient of determination 0.08029 is not close enough to 0.1953( $\geq$ 0.06), indicating that the model has problem of over-fitting.
+
+
+###c
+From the printout, $s_{\varepsilon}$ = 2.587
+
+We can use this statistic to assess the model's fit by comparing to the mean of y.
+```{r}
+cat("mean of y = ",mean(sales))
+```
+It seems that $s_{\varepsilon}$ is small compared to $\bar{y}$ = 19.8216.
+
+We can conclude the model fit the data well.
+
+###d
+We use the F-test of ANOVA to test the validity of the model.
+    Hypothesis:
+
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+
+```{r}
+linearModelVar <- lm(sales ~ Data.Sales)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+    Conclusion:
+Since p value 0.1979 > 0.05, we do NOT reject $H_0$.
+There is no sufficient evidence to say that at least one of the $b_i$ is not equal to zero. Thus, this regression model is not valid.
+
+###e
+Use the t-test of the coefficient of correlation to determine which independent variables are linearly related to weekly gross sales.
+
+    Hypothesis for each independent variable:
+    
+$$
+H_0:\rho\ =\ 0\\
+H_1:\rho\ \neq\ 0
+$$
+
+    Multiple Regression equation:
+$$
+\hat{y}\ =\ b_0\ +\ b_1x_1\ +\ b_2x_2\ +\ b_3x_3\\
+=\ 12.3084\ +\ 0.5699x_1 \ +\  3.3200 x_2\ +\ 0.7322x_3
+$$
+
+
+For $b_1$:
+```{r}
+test_cor <- cor.test(sales, direct,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+
+Since p-value = 0.9901 > 0.05, we do not reject H0.
+There is no sufficient evidence at a = 5% to infer that there is a linear relationship between $b_1$ and y.
+
+For $b_2$:
+```{r}
+test_cor <- cor.test(sales, newspaper,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+
+Since p-value = 0.03105 < 0.05, we  reject H0.
+There is sufficient evidence at a = 5% to infer that there is a linear relationship between $b_2$ and y.
+
+For $b_3$:
+```{r}
+test_cor <- cor.test(sales, TV,alternative = "two.sided")
+
+cat("# # # # The test of Coefficient of Correlation # # # ","\n")
+print(test_cor)
+```
+
+Since p-value = 0.5378 > 0.05, we do not reject H0.
+There is no sufficient evidence at a = 5% to infer that there is a linear relationship between $b_3$ and y.
+    Overall conclusion:
+Due to results of above, $b_2$(newspaper) is linearly  related to weekly gross sales in this model.
+
+###f
+Compute the week's gross sales with 95% confidence if a local store spent $800 on direct mailing, $1,200 on newspaper advertisements, and $2,000 on TV commercials.
+    Use prediction interval:
+```{r}
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+newdata = data.frame(Data.Sales <- cbind(0.8,1.2,2) )
+PI <- predict(linearModelVar, newdata, interval="predict")
+cat("# # # # The prediction interval # # # ","\n")
+print(PI)
+```
+    Conclusion:
+At 95% confidence level, the interval, [12.27324 ,24.15208](in $1,000), covers the week's gross sales with 95% confidence if a local store spent $800 on direct mailing, $1,200 on newspaper advertisements, and $2,000 on TV commercials.
+
+###g
+Calculate the mean weekly gross sales for all stores with 95% confidence that spent $800 on direct mailing, $1,200 on newspaper advertisements, and $2,000 on TV commercials.
+    Use confidence interval:
+```{r}
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+newdata = data.frame(Data.Sales <- cbind(0.8,1.2,2) )
+CI <- predict(linearModelVar, newdata, interval="confidence")
+cat("# # # # The confidence interval # # # ","\n")
+print(CI)
+```
+
+    Conclusion:
+At 95% confidence level, the interval, [15.69681, 20.72851](in $1,000), covers the mean weekly gross sales for all stores that spent $800 on direct mailing, $1,200 on newspaper advertisements, and $2,000 on TV commercials.
+
+###h
+The 2 intervals in (f) and (g) have a difference, since the prediction interval is wider than the confidence interval.
+
+##Residual Analysis
+
+    Standardized residuals:
+```{r}
+standarized_errors_MR <- function(y, x) {
+   n <- length(y)
+   k <- ncol(x)
+   x1 <- vector("double", length = n)
+   for(j in 1:n) {
+      x1[j] <- 1
+      }
+   Matrix_X <- cbind(x1, x)
+   Matrix_Y <- cbind(y)
+   Matrix_H <-  Matrix_X%*%solve(t(Matrix_X)%*%Matrix_X)%*%t(Matrix_X)
+   Matrix_YP <-  Matrix_H%*%Matrix_Y
+   y_p <- Matrix_YP[,1]
+   h <- vector("double", length = n)
+   D <- vector("double", length = n)
+      Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   se <- sqrt(sum((y - y_p)^2)/(n - k - 1))
+   for(i in 1:n) {
+      h[i] <- Matrix_H[i,i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      D[i] <- (y[i] - y_p[i])^2 * h[i] / ((k -1) * se^2 * (1 - h[i])^2)
+      }
+   SEhD <- cbind(Standard_E, h, D)
+   return(SEhD)
+}
+#
+n <- length(sales)
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+SE <- standarized_errors_MR(sales, Data.Sales)[,1]
+h <- standarized_errors_MR(sales, Data.Sales)[,2]
+D <- standarized_errors_MR(sales, Data.Sales)[,3]
+print(SE)
+```
+1. Normality
+
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+SE <- standarized_errors_MR(sales, Data.Sales)[,1]
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+Because p_value = 0.1614 > 0.05, we do not rejected H0. We can NOT infer that errors are not normally distributed.
+    
+2. Homoscedasticity or Heteroscedasticity:
+
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+n <- length(sales)
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+SE <- standarized_errors_MR(sales, Data.Sales)[,1]
+
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+c <- coef(linearModelVar)[3]
+d <- coef(linearModelVar)[4]
+Price_p <- vector("double", length = n)
+  for(i in 1:n) {
+    Price_p[i] <- a + b * direct[i] + c * newspaper[i] + d * TV[i]
+  }
+plot(x = Price_p,y = SE,  xlab = "Predicted Sales",  ylab = "Standardized Error", main = "Predicted Sales vs Standard Errors")
+```
+
+Conclusion:
+Do not Rejected H0. We can assume that the variation is constant and the mean is around 0.
+
+3. Dependence of the Error Variable
+
+    Hypothesis:
+    
+$$
+H_0:\ Randomness\ exists.\\
+H_1:\ Randomness\ does\ not\ exist.
+$$
+
+
+```{r}
+library(randtests)
+library(snpar)
+n <- length(sales)
+SE <- standarized_errors_MR(sales, Data.Sales)[,1]
+Run_T <- runs.test(SE)
+#cat(length(SE))
+print(Run_T)
+```
+Conclusion:
+When n1=12 and n2=12 (both less than 20), the lower bound k1=7 and the upper bound k2=19 (according to the table in the Powerpoint).
+Since k1=7< Runs=13 <k2=19, we don’t reject H0.
+There is no evidence to infer that the sample is not random.
+
+##Outliers and Influential Obs
+```{r}
+n <- length(sales)
+Data.Sales <- cbind(direct,newspaper,TV)
+linearModelVar <- lm(sales ~ Data.Sales)
+SE <- standarized_errors_MR(sales, Data.Sales)[,1]
+h <- standarized_errors_MR(sales, Data.Sales)[,2]
+D <- standarized_errors_MR(sales, Data.Sales)[,3]
+#
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+cat("     ","\n")
+cat("# # # # Influential Observations by h # # # ","\n")
+k <- dim(Data.Sales)[2]
+Inf_Obs <- h > 3*(k+1)/n
+print(Inf_Obs)
+cat("     ","\n")
+cat("# # # # Influential Observations # # # ","\n")
+Inf_Obs <- D > 1
+print(Inf_Obs)
+```
+Conclusion:
+Sample 3 is an outlier because its standardized residual is larger than 2 or smaller than –2.
+None of the samples is influential observation because neither of their h is larger than 3*(k+1)/n or $D_i$ > 1.
+
+##17.13
+###a
+```{r}
+#data processing
+data3 <- read.csv("Xr17-13.csv",header = 1)
+lottery <- data3$Lottery
+education <- data3$Education
+age <- data3$Age
+children <- data3$Children
+income <- data3$Income
+
+#Scatter diagram
+plot(education,lottery,col="blue",main = " Lottery against Education",xlab="number of years of education",ylab="amount spent on lottery tickets as a percentage of total household income")
+abline(lm(lottery~education))
+
+plot(age,lottery,col="blue",main = " Lottery against Age",xlab="age",ylab="amount spent on lottery tickets as a percentage of total household income")
+abline(lm(lottery~age))
+
+plot(children,lottery,col="blue",main = " Lottery against Number of Children",xlab="number of children",ylab="amount spent on lottery tickets as a percentage of total household income")
+abline(lm(lottery~children))
+
+plot(income,lottery,col="blue",main = " Lottery against Income",xlab="personal income(in $1,000)",ylab="amount spent on lottery tickets as a percentage of total household income")
+abline(lm(lottery~income))
+#
+Data.Lottery <- cbind(education,age,children,income)
+linearModelVar <- lm(lottery ~ Data.Lottery)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x_1\ +\ \beta_2x_2\ +\ \beta_3x_3\ +\ \beta_4x_4\ +\ \varepsilon
+$$
+
+y = amount spent on lottery tickets as a percentage of total household income
+
+$x_1$ = number of years of education
+
+$x_2$ = age
+
+$x_3$ = number of children
+
+$x_4$ = personal income(in $1,000)
+
+$\varepsilon$ = error variable
+
+    From the printout, we can get the multiple regression model:
+
+$$
+\hat{y} =\ 11.90609 \ -\ 0.43002 x_1 \ +\  0.02919x_2\ +\ 0.09344x_3\ -\ 0.07447x_4\ 
+$$
+
+###b
+We use the F-test of ANOVA to test the validity of the model.
+
+    Hypothesis:
+
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ \beta_4\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+
+```{r}
+linearModelVar <- lm(lottery ~ Data.Lottery)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+    Conclusion:
+Since p value 4.094e-11 < 0.05, we reject $H_0$.
+There is sufficient evidence to say that at least one of the $b_i$ is not equal to zero. Thus, at least one independent variable is related to y. This regression model is valid.
+
+###c
+
+$$
+\hat{y}\ =\ b_0\ +\ b_1x_1\ +\ b_2x_2\ +\ b_3x_3\ +\ b_4x_4\\
+=\ 11.90609 \ -\ 0.43002 x_1 \ +\  0.02919x_2\ +\ 0.09344x_3\ -\ 0.07447x_4\ 
+$$
+
+1. Since $b_1$ = -0.43002 < 0, we can conclude that as the education level increases, people spend more on lotteries.
+
+2. Since $b_2$ = 0.02919 > 0, we can conclude that older people buy more lottery tickets than the younger.
+
+3. Since $b_3$ = 0.09344 > 0, we can conclude that people with more children spend more on lotteries than those with fewer children.
+
+4. Since $b_4$ = -0.07447 < 0, we can conclude that relatively poor income people spend a greater proportion of their income on lotteries than the relatively rich.
+
+##Residual Analysis
+
+    Standardized residuals:
+```{r}
+standarized_errors_MR <- function(y, x) {
+   n <- length(y)
+   k <- ncol(x)
+   x1 <- vector("double", length = n)
+   for(j in 1:n) {
+      x1[j] <- 1
+      }
+   Matrix_X <- cbind(x1, x)
+   Matrix_Y <- cbind(y)
+   Matrix_H <-  Matrix_X%*%solve(t(Matrix_X)%*%Matrix_X)%*%t(Matrix_X)
+   Matrix_YP <-  Matrix_H%*%Matrix_Y
+   y_p <- Matrix_YP[,1]
+   h <- vector("double", length = n)
+   D <- vector("double", length = n)
+      Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   se <- sqrt(sum((y - y_p)^2)/(n - k - 1))
+   for(i in 1:n) {
+      h[i] <- Matrix_H[i,i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      D[i] <- (y[i] - y_p[i])^2 * h[i] / ((k -1) * se^2 * (1 - h[i])^2)
+      }
+   SEhD <- cbind(Standard_E, h, D)
+   return(SEhD)
+}
+#
+n <- length(lottery)
+Data.Lottery <- cbind(education,age,children,income)
+linearModelVar <- lm(lottery ~ Data.Lottery)
+SE <- standarized_errors_MR(lottery, Data.Lottery)[,1]
+h <- standarized_errors_MR(lottery, Data.Lottery)[,2]
+D <- standarized_errors_MR(lottery, Data.Lottery)[,3]
+print(SE)
+```
+1. Normality
+
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+SE <- standarized_errors_MR(lottery, Data.Lottery)[,1]
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+Because p_value = 0.004009 > 0.05, we rejected H0. We can infer that errors are not normally distributed.
+    
+2. Homoscedasticity or Heteroscedasticity:
+
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+n <- length(lottery)
+Data.Lottery <- cbind(education,age,children,income)
+linearModelVar <- lm(lottery ~ Data.Lottery)
+SE <- standarized_errors_MR(lottery, Data.Lottery)[,1]
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+c <- coef(linearModelVar)[3]
+d <- coef(linearModelVar)[4]
+e <- coef(linearModelVar)[5]
+Price_p <- vector("double", length = n)
+  for(i in 1:n) {
+    Price_p[i] <- a + b * education[i] + c * age[i] + d * children[i] + e * income[i]
+  }
+plot(x = Price_p,y = SE,  xlab = "Predicted Spend on Lottery",  ylab = "Standardized Error", main = "Predicted Spend on Lottery vs Standard Errors")
+```
+
+Conclusion:
+Do not Rejected H0. We can assume that the variation is constant and the mean is around 0.
+
+3. Dependence of the Error Variable
+
+    Hypothesis:
+    
+$$
+H_0:\ Randomness\ exists.\\
+H_1:\ Randomness\ does\ not\ exist.
+$$
+
+
+```{r}
+library(randtests)
+SE <- standarized_errors_MR(lottery, Data.Lottery)[,1]
+Run_T <- runs.test(SE)
+print(Run_T)
+```
+Conclusion:
+When n1=50 > 20, we can make a conclusion through p-value.
+Since p-value = 1 > 0.05, we don’t reject H0.
+There is no evidence to infer that the sample is not random.
+
+##Outliers and Influential Obs
+```{r}
+n <- length(lottery)
+Data.Lottery <- cbind(education,age,children,income)
+linearModelVar <- lm(lottery ~ Data.Lottery)
+SE <- standarized_errors_MR(lottery, Data.Lottery)[,1]
+h <- standarized_errors_MR(lottery, Data.Lottery)[,2]
+D <- standarized_errors_MR(lottery, Data.Lottery)[,3]
+#
+cat("# # # # Outliers # # # ","\n")
+Outliers <- abs(SE) > 2
+print(Outliers)
+cat("     ","\n")
+cat("# # # # Influential Observations by h # # # ","\n")
+k <- dim(Data.Lottery)[2]
+Inf_Obs <- h > 3*(k+1)/n
+print(Inf_Obs)
+cat("     ","\n")
+cat("# # # # Influential Observations # # # ","\n")
+Inf_Obs <- D > 1
+print(Inf_Obs)
+```
+Conclusion:
+Samples 3, 52, 63, 66, 87 and 94  are outliers because their standardized residuals are larger than 2 or smaller than –2.
+Samples 61, 62 are influential observations because their h are larger than 3*(k+1)/n.
+
+
+#grade 71
+	17.03 (b)解釋不佳 -1 17.03 (e)解釋不佳 -1 17.03 (f)錯誤 -9 17.07 (e)錯誤 -7 17.07 (h)解釋不佳 -1 17.13 (c)錯誤 -9 17.13 方差解釋不佳 -1

@@ -1,0 +1,549 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics XII Homework Ch18_Textbook
+##18.17
+###a
+```{r}
+#data processing
+data1 <- read.csv("Xr18-17.csv",header = 1)
+attendance <- data1$Attendance
+yes.att <- data1$Yest.Att
+I1 <- data1$I1
+I2 <- data1$I2
+I3 <- data1$I3
+n <- length(attendance)
+#
+wk_u <- I1 == 1
+wk_att <- attendance[wk_u]
+wk_yes.att <- yes.att[wk_u]
+sun_u <- I2 == 1
+sun_att <- attendance[sun_u]
+sun_yes.att <- yes.att[sun_u]
+rain_u <- I3 == 1
+rain_att <- attendance[rain_u]
+rain_yes.att <- yes.att[rain_u]
+#
+wd_u <- I1 < 1
+wd_att <- attendance[wd_u]
+wd_yes.att <- yes.att[wd_u]
+other_u <- (I2 < 1 & I3 < 1)
+other_att <- attendance[other_u]
+other_yes.att <- yes.att[other_u]
+#scatter diagram_1
+plot(wk_yes.att, wk_att, col = "green", main = "Attendance against The Previous Day's(weekend or not)", xlab = "previous day's att", ylab = "attendance", xlim=range(yes.att), ylim=range(attendance))
+points(wd_yes.att, wd_att, col= "red")
+abline(lm(wk_att ~ wk_yes.att), col = "green")
+abline(lm(wd_att ~ wd_yes.att), col= "red")
+#scatter diagram_2
+plot(sun_yes.att, sun_att, col = "green", main = "Attendance against The Previous Day's(weather.diff)", xlab = "previous day's att", ylab = "attendance", xlim=range(yes.att), ylim=range(attendance))
+points(rain_yes.att, rain_att, col= "red")
+points(other_yes.att, other_att, col= "blue")
+abline(lm(sun_att ~ sun_yes.att), col = "green")
+abline(lm(rain_att ~ rain_yes.att), col= "red")
+abline(lm(other_att ~ other_yes.att), col= "blue")
+```
+
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x\ +\ \beta_2I_1\ +\ \beta_3I_2\ +\ \beta_4I_3\ +\ \varepsilon
+$$
+
+y = the attendance
+
+x = the previous day's attendance
+
+$I_1$ = day of the week (weekend = 1, else = 0)
+
+$I_2$ = weather forecast (sunny is predicted = 1, else = 0)
+
+$I_3$ = weather forecast (rain is predicted = 1, else = 0)
+
+$\varepsilon$ = error variable
+
+```{r}
+attendance <- data1$Attendance
+yes.att <- data1$Yest.Att
+I1 <- data1$I1
+I2 <- data1$I2
+I3 <- data1$I3
+n <- length(attendance)
+Data.att <- cbind(yes.att, I1, I2, I3)
+linearModelVar <- lm(attendance ~ Data.att)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+    From the printout, we can get the multiple regression model:
+
+$$
+\hat{y} =\ 3490.467\ + 0.369x\ +1623.096I_1\ +733.465I_2\ -765.543I_3 
+$$
+
+###b
+To test the validity of the model, we use the F-test of ANOVA.
+
+Hypothesis:
+
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ \beta_4\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+
+```{r}
+linearModelVar <- lm(attendance ~ Data.att)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+Conclusion:
+
+Since p value 9.277e-09 < 0.05, we reject $H_0$.
+
+There is sufficient evidence to say that at least one of the $b_i$ is not equal to zero. Thus, at least one independent variable is related to y. This regression model is valid.
+
+###c
+Use t-test to test if weather is a factor in determinung attendance.
+
+Hypothesis testing about $\beta_3$ :
+    
+$$
+H_0:\beta_3\ =\ 0\\
+H_1:\beta_3\ \neq\ 0
+$$
+
+Hypothesis testing about $\beta_4$ :
+    
+$$
+H_0:\beta_4\ =\ 0\\
+H_1:\beta_4\ \neq\ 0
+$$
+
+```{r}
+linearModelVar <- lm(attendance ~ Data.att)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+for $\beta_3$ :
+
+Since p-value for $I_2$ = 0.07133 > 0.05, we do not reject $H_0$.
+
+There is NO sufficient evidence to infer that a predicted sunny day is a factor in determining attendance.
+
+for $\beta_4$ :
+
+Since p-value for $I_3$ = 0.12321 > 0.05, we do not reject $H_0$.
+
+There is NO sufficient evidence to infer that a predicted rain day is a factor in determining attendance.
+
+###Conclusion
+We can not conclude that weather is a factor in determining attendance.
+
+###d
+Use t-test to test if weekend attendance is, on average, larger than weekday attendance.
+
+Hypothesis testing about $\beta_2$ :
+    
+$$
+H_0:\beta_2\ =\ 0\\
+H_1:\beta_2\ >\ 0
+$$
+
+```{r}
+linearModelVar <- lm(attendance ~ Data.att)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+Because we are doing right-tail test, p-value =  0.00226/2 = 0.00113
+Since p-value for $I_1$ = 0.00113 < 0.05, we reject $H_0$.
+
+There is sufficient evidence to infer that weekend attendance is, on average, larger than weekday attendance.
+
+##18.21
+###a
+```{r}
+#data processing
+data2 <- read.csv("Xr18-21.csv",header = 1)
+cost <- data2$Repairs
+age <- data2$Age
+machine <- data2$Machine
+#
+weld_u <- machine == 1
+weld_cost <- cost[weld_u]
+weld_age <- age[weld_u]
+lathe_u <- machine == 2
+lathe_cost <- cost[lathe_u]
+lathe_age <- age[lathe_u]
+stamp_u <- machine == 3
+stamp_cost <- cost[stamp_u]
+stamp_age <- age[stamp_u]
+
+#scatter diagram
+plot(weld_age, weld_cost, col = "green", main = "Cost of Repairs against Age of Machine", xlab = "Age of Machine", ylab = "Cost of Repairs", xlim=range(age), ylim=range(cost))
+points(lathe_age, lathe_cost, col= "red")
+points(stamp_age, stamp_cost, col= "blue")
+abline(lm(weld_cost ~ weld_age), col = "green")
+abline(lm(lathe_cost ~ lathe_age), col= "red")
+abline(lm(stamp_cost ~ stamp_age), col= "blue")
+```
+
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x\ +\ \beta_2I_1\ +\ \beta_3I_2\ +\ \varepsilon
+$$
+
+y = cost of repairs
+
+x = age of machine
+
+$I_1$ = welding machine = 1, else = 0.
+
+$I_2$ = lathe = 1, else = 0.
+
+if $I_1, I_2$ both = 0, then it's a stamping machine
+
+$\varepsilon$ = error variable
+
+```{r}
+cost <- data2$Repairs
+age <- data2$Age
+machine <- data2$Machine
+n <- length(cost)
+I1 <- data2$I1
+I2 <- data2$I2
+for(i in 1 : n)
+{
+  if(machine[i] == 1)
+  {
+    I1[i] = 1
+    I2[i]= 0
+  }
+  else if(machine[i] == 2)
+  {
+    I1[i] = 0
+    I2[i] = 1
+  }
+  else
+  {
+    I1[i] = 0
+    I2[i] = 0
+  }
+}
+Data.cost <- cbind(age, I1, I2)
+linearModelVar <- lm(cost ~ Data.cost)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+    From the printout, we can get the multiple regression model:
+
+$$
+\hat{y} =\ b_0\ +\ b_1x\ +\ b_2I_1\ +\ b_3I_2\\
+=\ 119.25\ +2.54x\ -11.76I_1\ -199.37I_2
+$$
+
+###b
+for $b_0$:
+
+The intercept, b0, is 119.25.
+
+One interpretation would be that when x, $I_1,I_2$ = 0, the cost of repairs is $119.25. 
+
+However, we have no data for age of machine is less than 0. So, this isn’t a correct assessment.
+
+for $b_1$:
+
+$b_1$ = 2.54. In this model, for each additional age of machine, the cost of repairs increases on the average by 2.54 (assuming the other variables are held constant).
+
+for $b_2$:
+
+$b_2$ = 11.76. A welding machine, on the average, cost for $11.76 less than a stamping machine. 
+
+for $b_3$:
+
+$b_3$ = 199.37. A lathe, on the average, cost for $199.37 less than a stamping machine. 
+
+###c
+Use t-test to test if welding machines cost less to repair than other machines.
+
+Hypothesis testing about $\beta_2$ :
+    
+$$
+H_0:\beta_2\ =\ 0\\
+H_1:\beta_2\ <\ 0
+$$
+
+```{r}
+linearModelVar <- lm(cost ~ Data.cost)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+Because we are doing left-tail test, p-value = 0.55314 / 2 = 0.27657
+
+Since p-value for $I_1$ = 0.27657 > 0.05, we  do not reject $H_0$.
+
+There is no sufficient evidence to infer that welding machines cost less to repair than other machines.
+
+##18.39
+###a
+```{r}
+#data processing
+data3 <- read.csv("Xr17-17.csv",header = 1)
+margin <- data3$Margin
+number <- data3$Number
+nearest <- data3$Nearest
+office <- data3$Office.Space
+enrollment <- data3$Enrollment
+income <- data3$Income
+distance <- data3$Distance
+
+#Scatter diagram
+plot(number,margin,col="blue",main = " Margin against Number",xlab="Number of motel and hotel rooms",ylab="operating margin(in percent)")
+abline(lm(margin ~ number))
+
+plot(nearest,margin,col="blue",main = " Margin against Nearest",xlab="Number of miles to closest competition",ylab="operating margin(in percent)")
+abline(lm(margin ~ nearest))
+
+plot(office,margin,col="blue",main = " Margin against Office Space",xlab="office space in thousands of square feet",ylab="operating margin(in percent)")
+abline(lm(margin ~ office))
+
+plot(enrollment,margin,col="blue",main = " Margin against Enrollment",xlab="college and university enrollment(in thousands)",ylab="operating margin(in percent)")
+abline(lm(margin ~ enrollment))
+
+plot(income,margin,col="blue",main = " Margin against Income",xlab="medin household income(in $thousands)",ylab="operating margin(in percent)")
+abline(lm(margin ~ income))
+
+plot(distance,margin,col="blue",main = " Margin against Distance",xlab="distance(in miles) to the downtown core",ylab="operating margin(in percent)")
+abline(lm(margin ~ distance))
+```
+
+```{r}
+#stepwise regression
+library(olsrr)
+n <- length(margin)
+Data.Stepwise_MG <- data.frame(cbind(number, nearest,office,enrollment,income,distance))
+linearModelVar <- lm(margin ~ number + nearest + office + enrollment + income + distance, data = Data.Stepwise_MG)
+cat(" ","\n")
+Index_step <- ols_step_both_p(linearModelVar, details = TRUE)
+print(Index_step)
+```
+
+    From the printout, we can get the regression equation:
+    
+$$
+\hat{y}\ =\ 41.273\ +0.020*office\ -0.008*number\ +0.399*income\ +1.654*nearest
+$$
+
+```{r}
+n <- length(margin)
+Data.margin <- cbind(number,nearest,office,income)
+linearModelVar <- lm(margin ~ Data.margin)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+
+###b
+The output produced in exercise 17.17:
+```{r}
+n <- length(margin)
+Data.margin <- cbind(number,nearest,office,enrollment,income,distance)
+linearModelVar <- lm(margin ~ Data.margin)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+The stepwise regression version has less independent variables by 2, 
+
+it has a smaller R-squared, and if we use F-test, we get a smaller p-value, which means it is more valid. 
+##18.49
+###a
+```{r}
+#data processing
+data4 <- read.csv("Xr18-49.csv",header = 1)
+depletion <- data4$Pct.Dep
+temp <- data4$Temperature
+ph <- data4$PH.Level
+weather <- data4$Weather
+
+#Scatter diagram
+plot(temp,depletion,col="blue",main = " Depletion against Temperature",xlab="temperature(degree Fahrenheit)",ylab="percentage of chlorine depletion")
+abline(lm(depletion ~ temp))
+
+plot(ph,depletion,col="blue",main = " Depletion against pH Level",xlab="pH level",ylab="percentage of chlorine depletion")
+abline(lm(depletion ~ ph))
+
+plot(weather,depletion,col="blue",main = " Depletion against Weather",xlab="1=mainly cloudy, 2=sunny, 3=partly sunny",ylab="percentage of chlorine depletion")
+abline(lm(depletion ~ temp))
+```
+
+1. Since it is believed that pH levels around 7.5 use the least chlorine, we use a variable to represent the diffrence between pH level of the water and 7.5.
+
+2. We use 2 indicator variables to represent the weather variable.
+
+The equation:
+
+$$
+y\ =\ \beta_0\ +\beta_1x_1\ +\beta_2x_2\ +\beta_3I_1\ +\beta_4I_2\ +\varepsilon
+$$
+y = percentage of chlorine depletion over 8 hours
+
+$x_1$ = temperature(degree Fahrenheit)
+
+$x_2$ = |pH level - 7.5|
+
+$I_1$ = 1 if it is mainly cloudy, otherwise 0
+
+$I_2$ = 1 if it is sunny, otherwise 0
+
+if $I_1$ = $I_2$ = 0, then it is partly sunny
+
+$\varepsilon$ = error variable
+
+###b
+```{r}
+#adjustment
+n <- length(depletion)
+I1 <- data4$I1
+I2 <- data4$I2
+ph_adj <- vector("double", length = n)
+for(i in 1:n)
+{
+  ph_adj[i] = abs(ph[i] - 7.5)
+  if(weather[i] == 1)
+  {
+    I1[i] = 1
+    I2[i] = 0
+  }
+  else if(weather[i] == 2)
+  {
+    I1[i] = 0
+    I2[i] = 1
+  }
+  else
+  {
+    I1[i] = 0
+    I2[i] = 0
+  }
+}
+
+#regression model
+Data.Depletion <- cbind(temp, ph_adj, I1,I2)
+linearModelVar <- lm(depletion ~ Data.Depletion)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+From the printout, we can get the regression model:
+
+$$
+\hat{y}\ =\ 6.84\ +0.19x_1\ +17.18x_2\ -1.07I_1\ +1.16I_2
+$$
+
+###c
+We use the F-test of ANOVA to test the validity of the model.
+    Hypothesis:
+
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ \beta_4\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+```{r}
+linearModelVar <- lm(depletion ~ Data.Depletion)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+Conclusion:
+
+Since p value < 2.2e-16 << 0.05, we reject $H_0$.
+
+There is sufficient evidence to say that at least one of the $b_i$ is not equal to zero. 
+
+Thus, at least one independent variable is related to y. This regression model is valid.
+
+###d, e, f
+Use t-test to test (d), (e), (f)
+```{r}
+linearModelVar <- lm(depletion ~ Data.Depletion)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+###d
+Hypothesis testing about $\beta_1$ :
+    
+$$
+H_0:\beta_1\ =\ 0\\
+H_1:\beta_1\ >\ 0
+$$
+for $\beta_1$ :
+
+Because we are doing right-tail test, p-value = 2.66e-09 / 2 = 1.33e-09
+
+Since p-value = 1.33e-09  < 0.05, we reject $H_0$.
+
+There is sufficient evidence to infer that higher temperatures deplete chlorine more quickly.
+
+###e
+Hypothesis testing about $\beta_2$ :
+    
+$$
+H_0:\beta_2\ =\ 0\\
+H_1:\beta_2\ \neq\ 0
+$$
+for $\beta_2$ :
+
+Since p-value = < 2e-16  << 0.05, we reject $H_0$.
+
+There is sufficient evidence to infer that the belief about the relationship between chlorine depletion and pH level is correct.
+
+###f
+Hypothesis testing about $\beta_3$ :
+    
+$$
+H_0:\beta_3\ =\ 0\\
+H_1:\beta_3\ \neq\ 0
+$$
+
+for $\beta_3$ :
+
+Since p-value = 0.1625 > 0.05, we reject $H_0$.
+
+There is NO sufficient evidence to infer that on mainly cloudy days, the depletion of chlorine will be lower.
+
+Hypothesis testing about $\beta_4$ :
+    
+$$
+H_0:\beta_4\ =\ 0\\
+H_1:\beta_4\ \neq\ 0
+$$
+
+for $\beta_4$ :
+
+Since p-value = 0.1306  > 0.05, we reject $H_0$.
+
+There is NO sufficient evidence to infer that on sunny days, the depletion of chlorine will be higher.
+
+    Conclusion:
+    
+We can not infer that weather is a factor in chlorine depletion.
+
+
+
+
+
+
+
+

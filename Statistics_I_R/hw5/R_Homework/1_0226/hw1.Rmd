@@ -1,0 +1,127 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics I Homework Ch13_Textbook
+
+##13.17
+    let the variance of the weight gain using Tastee = (σ1)^2, the variance of the weight gain using product of competitor = (σ2)^2
+    hypothesis:
+    H0: (σ1)^2/(σ2)/2 = 1
+    H1: (σ1)^2/(σ2)/2 != 1
+```{r}
+data <- read.csv("Xr13-17.csv",header = 1)
+tast <- data$Tastee
+comp <- data$Competitor
+#remove NAs
+tast = tast[!is.na(tast)]
+ftest1=var.test(tast, comp, 
+             alternative = "two.sided", conf.level = 0.95)
+print(ftest1)
+
+```
+    since p-value = 0.305>0.05, there is no sufficient evidence to reject H0 at 95% confidence level. Then we apply the equal-variances t-test of μ1 – μ2.
+    let μ1 is the average weight gain using Tastee, and μ2 is the average weight gain using the product of competitor.
+    hypo:
+    H0:μ1 - μ2 <= 0
+    H1:μ1 - μ2 > 0
+
+```{r}
+ttest1 = t.test(tast, comp, alternative =  "greater", mu = 0, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+print(ttest1) 
+```
+    since p-value is 2.227e-05< 0.05, there is sufficient evidence to reject H0 at 95% confidence level. That is, the evidence support the claim that the Tastee baby food is indeed superior.
+###a
+    We conclude that the Tastee baby food is indeed superior.
+###b
+```{r}
+ttest1 = t.test(tast, comp, alternative =  "two.sided", mu = 0, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+print(ttest1) 
+```
+    As data above, the interval with 95% confidence is[ 3.125913, 8.020754].
+###c
+```{r}
+hist(data$Tast, main = "Weight gain after using Tastee", xlab = "weight gain")
+hist(data$Comp, main = "Weight gain after using competitor's product" , xlab = "weight gain")
+```
+    Since both of the datasets are normally distributed, the required conditions is satisfied.
+##13.33
+    let the variance of the miles a new steel-belted radial tire goes = (σ1)^2, and the variance of the miles the company's current model goes = (σ2)^2
+    hypothesis:
+    H0: (σ1)^2/(σ2)/2 = 1
+    H1: (σ1)^2/(σ2)/2 != 1
+```{r}
+data <- read.csv("Xr13-33.csv",header = 1)
+new <- data$New
+current <- data$Existing
+ftest1=var.test(new, current, 
+             alternative = "two.sided", conf.level = 0.95)
+print(ftest1)
+```
+    since p-value = 0.8792>0.05, there is no sufficient evidence to reject H0 at 95% confidence level. Then we apply the equal-variances t-test of μ1 – μ2.
+    let the average miles a new steel-belted radial tire goes = μ1, and the average miles the company's current model goes = μ2.
+    hypothesis:
+    H0:μ1 - μ2 <= 0
+    H1:μ1 - μ2 > 0
+
+```{r}
+ttest1 = t.test(new, current, alternative =  "greater", mu = 0, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+print(ttest1) 
+```
+    Since p-value = 0.1849 > 0.05, there is no sufficient evidence to reject H0 at 95% confidence level.
+    That is, there is no sufficient evidence to support the claim that the new tire will last longer than the existing one.
+
+##13.37
+    let the variance of the scores before the change = (σ1)^2, and the variance of the scores after the change = (σ2)^2
+    hypothesis:
+    H0: (σ1)^2/(σ2)/2 = 1
+    H1: (σ1)^2/(σ2)/2 != 1
+```{r}
+data <- read.csv("Xr13-37.csv",header = 1)
+before = data$Before
+after = data$After
+#remove NAs
+after = after[!is.na(after)]
+ftest1=var.test(before, after, 
+             alternative = "two.sided", conf.level = 0.95)
+print(ftest1)
+```
+    since p-value = 0.2429>0.05, there is no sufficient evidence to reject H0 at 95% confidence level. Then we apply the equal-variances t-test of μ1 – μ2.
+    let the average scores before the change = μ1, and the average scores after the change = μ2.
+    hypothesis:
+    H0:μ1 - μ2 >= 0
+    H1:μ1 - μ2 < 0
+
+```{r}
+ttest1 = t.test(before, after, alternative =  "less", mu = 0, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+print(ttest1) 
+```
+    Since p-value = 0.005723 < 0.05, there is sufficient evidence to reject H0 at 95% confidence level.
+    That is, we can infer from the data that the SAT scores increased after the change in the school start time.
+
+##13.116
+    let the variance of the class1 = (σ1)^2, and the variance of the class2 = (σ2)^2
+    hypothesis:
+    H0:(σ1)^2/(σ2)^2 = 1
+    H1:(σ1)^2/(σ2)^2 != 1
+```{r}
+data <- read.csv("Xr13-116.csv", header=1)
+class1 <- data$Class.1
+class2 <- data$Class.2
+ftest1=var.test(class1, class2, alternative = "two.sided", conf.level = 0.95)
+print(ftest1)
+```
+    Since p-value is 0.07835>0.05, there is no sufficient evidence to infer that the variances of the marks differ between the two sections.
+##13.117
+    let the variance of the week1 = (σ1)^2, and the variance of the week2 = (σ2)^2
+    hypothesis:
+    H0:(σ1)^2/(σ2)^2 = 1
+    H1:(σ1)^2/(σ2)^2 > 1
+```{r}
+data <- read.csv("Xr13-117.csv", header=1)
+week1 = data$Week.1
+week2 = data$Week.2       
+ftest1=var.test(week1, week2, alternative = "greater", conf.level = 0.95)
+print(ftest1)
+```
+    Since p-value is 0.01832<0.05, there is  sufficient evidence to infer that limiting the minimun and maximun speeds reduces the variation in speeds.

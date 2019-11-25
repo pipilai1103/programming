@@ -1,0 +1,373 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics V Homework Ch14,15_Textbook
+
+
+##14.107
+###a
+    There are 2 factors in this experiment.
+    1: the water temperatures
+    2: the 5 brands of detergent
+
+###b
+    The response variable is the "whiteness" scores for each sheet after washing.
+    
+###c
+    1: the water temperatures
+    there are 3 levels:
+      cold, warm, hot
+    2: the 5 brands of detergent.
+    there are 5 levels:
+      detergent 1~5 from different brands.
+
+###d
+    We use randomized block ANOVA test to check if there are differences in the whiteness scores between the five detergent, differences in the whiteness scores between the three water temperature, or interaction between detergents and temperatures.
+    Hypothesis:
+    the water temperatures:
+$$
+H_0:\mu_{cold}=\mu_{warm}=\mu_{hot}\\
+H_1:At\ least\ two\ average\ whiteness\ scores\ are\ different
+$$
+    
+    the brands of the detergent :
+    
+$$
+H_0:\mu_{b1}=\mu_{b2}=\mu_{b3}=\mu_{b4}=\mu_{b5}\\
+H_1:At\ least\ two\ average\ whiteness\ scores\ are\ different
+$$
+    
+    the interaction between the 2 factors:
+    
+$$
+H_0:\mu_{cold*b1}=\mu_{cold*b2}=...=\mu_{hot*b5}\\
+H_1:At\ least\ two\ average\ whiteness\ scores\ differ
+$$
+    
+```{r}
+df1 <- read.csv("Xr14-107.csv",header = 1)
+z <-as.list(df1)
+y=c(z[[2]],z[[3]],z[[4]],z[[5]],z[[6]])
+treatment=factor(c(rep("detergent 1", 30), rep("detergent 2",  30), rep("detergent 3",  30),rep("detergent 4",  30),rep("detergent 5",  30)))
+block = factor(c(rep(c(rep("cold", 10), rep("warm", 10), rep("hot", 10)),5)))
+df1<-data.frame(y=y,treatment = treatment, block = block)
+print(df1)
+out1=aov(y~treatment+block+treatment*block, data=df1)
+print(summary(out1))
+```
+    Since the 3 p-value are all < 0.05, there is sufficient evidence to infer that there are differences in whiteness scores between the 5 detergents, differences in whiteness scores between the 3 water temoeratures, and also there is interaction between detergents and temoeratures.
+    
+##14.109
+###a
+    There are 2 factors in this experiment.
+    1:the time that the class begins.
+    2:the seats arrangement of the classroom.
+###b
+    The response variable is the number of times students asked and answered questions.
+###c
+    1:the time that the class begins.
+    there are 3 levels:
+      9:00a.m., 1:00p.m., 4:00p.m.
+    2:the seats arrangement of the classroom.
+    there are 2 levels:
+    rows, U-shape
+###d
+    We use randomized block ANOVA test to check if there are differences in the times students asked and answered questions between the times classes begin, differences in the times students asked and answered questions between the different seats arrangement, or interaction between the two.
+    Let the time classe begins be the treatment, while the seats arrangement be the block.
+    Hypothesis:
+    the times that classes begin:
+$$
+H_0:\mu_{9:00am}=\mu_{1:00pm}=\mu_{4:00pm}\\
+H_1:At\ least\ two\ average\ response\ variables\ are\ different
+$$
+
+    the seats arrangement of the classroom :
+    
+$$
+H_0:\mu_{R}=\mu_{U}\\
+H_1:The\ two\ average\ response\ variables\ are\ different
+$$
+    
+    the interaction between the 2 factors:
+    
+$$
+H_0:\mu_{9:00am*R}=\mu_{9:00am*U}=...=\mu_{4:00pm*U}\\
+H_1:At\ least\ two\ average\ response\ variables\ are\ different
+$$
+  
+```{r}
+df2 <- read.csv("Xr14-109.csv",header = 1)
+z <-as.list(df2)
+y=c(z[[2]],z[[3]],z[[4]])
+treatment=factor(c(rep("9:00am", 10), rep("1:00pm",  10), rep("4:00pm",  10)))
+block = factor(c(rep(c(rep("Rows", 5), rep("U-shape", 5)),3)))
+df2<-data.frame(y=y,treatment = treatment, block = block)
+#print(df2)
+out2=aov(y~treatment+block+treatment*block, data=df2)
+print(summary(out2))
+```
+    Conclusions:
+    Since the p-value < 0.05, we have enough evidence to infer that there is interaction between the 2 factors. Then, we do not use the results of the other test.
+    Thus, we can conclude that there is interaction between the times classes begin and the seats arrangement of the classroom.
+   
+##A14.05
+###a
+    We use t-test to check whether MSA is effective in reduvion costs.
+    First, we condut f-test to test whether the two population varainces are equal.
+    We use $\sigma^2_{0}$ to denote the variance of expenses of MSA program, and $\sigma^2_{1}$ to denote the variance of expenses of regular program.
+
+$$
+H_0: \sigma^2_{0} = \sigma^2_{1}\\ 
+H_1: \sigma^2_{0} \neq \sigma^2_{1}
+$$
+
+```{r}
+df8 <- read.csv("XrA14-05.csv",header = 1) 
+z<-as.list(df8)
+ftest = var.test(z[[1]],z[[2]],alternative = "two.sided", conf.level = 0.95)
+print(ftest)
+```
+    Since the p-value is 0.9926 > 0.05, we cannot reject the null hypothesis. Thus, the variances of the expense of MSA program and the regular are the equal.
+    Then we can conduct t-test.
+    We use $\mu_0$ to denote the mean of expenses of MSA program, and $\mu_1$ to denote the mean of expenses of regular program.
+    Hypothesis:
+    
+$$
+H_0: (\mu_0 - \mu_1) = 0\\
+H_1: (\mu_0 - \mu_1) < 0
+$$
+
+```{r}
+ttest = t.test(z[[1]],z[[2]],alternative = "less",paired = FALSE , var.equal = TRUE, conf.level = 0.95)
+print(ttest)
+```
+    Since the p-value is 4.574e-09 < 0.05, we can reject the null hypothesis. Thus, the expenses of MSA program are less than the expenses of regular program.
+
+###b
+    We want to check whether people using MSA program are in poorer health than people using regular program.
+    Thus, we check the difference between two population proportions.
+    Hypothesis:
+    We use $p_0$ to denote the proportion of people who use MSA program are in bad health, and $p_1$ to denote the proportion of people who use regulation program are in bad health.
+
+$$
+H_0 : p_0 - p_1 = 0 \\
+H_1 : p_0 - p_1 < 0 
+$$
+
+```{r}
+p0<-0
+p1<-0
+
+tab1<-(table(df8[,3]))
+tab2<-(table(df8[,4]))
+tabbind = rbind(tab1,tab2)
+proptest = prop.test(tabbind, alternative = "less", correct = FALSE)
+print(proptest)
+```
+    Since the p-value = 0.3867 > 0.05, we can't reject null hypothesis.
+    Thus, we don't have enough evidence to say that people who use MSA  are less likely to be in excellent health.
+
+##A14.17
+###a
+    There are 4*4 = 16 levels.
+    They are {Business, Engineering, Arts, Science}*{Lecturer, Assistant, Associate, Full}.
+
+###b
+    We want to determine whether differences exist using a single-factor  analysis of variance.
+    We use bartlett test to compare the variances of the populations.
+
+$$
+H_0: All\ population\ variances\ are\ equal.\\
+H_1: Not\ all\ population\ variances\ are\ equal.
+$$
+
+```{R}
+df7 <- read.csv("XrA14-17.csv",header = 1)
+z <-as.list(df7)
+len<-c(0:0)
+for(i in 1:length(z))
+{
+  z[[i]]<-z[[i]][!is.na(z[[i]])]
+  len[i]<-length(z[[i]])
+}
+
+y=c(z[[2]], z[[3]], z[[4]], z[[5]])
+treatment<-c(rep(c(rep("Lecture", 5), rep("Assistant", 5), rep("Associate", 5),rep("Full", 5)),4))
+block=factor(c(rep("Business", len[1]), rep("Engineering", len[2]), rep("Arts", len[3]),rep("Science", len[4])))
+df7<-data.frame(y = y, treatment = treatment, block = block)
+for(i in nrow(df7))
+{
+  df7[,4] <- paste(df7[,2], df7[,3], sep = " ")
+}
+
+out7=bartlett.test(y~V4, data=df7)
+print(out7)
+```
+    Since p-value = 0.7968 > 0.05, we can't reject the null hypothesis. Thus, we don't have enough evidence to say that not all population variances are equal.
+
+###c
+    There are 2 factors
+    1.the faculties
+    levels:
+    Business, Engineering, Arts, Science
+    2.the rank of the professors
+    levels:
+    Lecturer, Assistant, Associate, Full
+###d
+    We use two way ANOVA to check if there is interaction.
+    We consider the rank of the professor as the treatment, and the faculty they work in as the block.
+    Hypothesis:
+    For treatment:
+    We use $\mu_{t0}$ to denote the average working hour of lecture, and $\mu_{t1}$ to denote the average working hour of assistant, $\mu_{t2}$ to denote the average working hour of associate, $\mu_{t3}$ to denote the average working hour of full professors.
+
+$$
+H0: \mu_{t0} = \mu_{t1} = \mu_{t2} = \mu_{t3}\\
+H1: Not\ all\ the\ means\ for\ treatments\ are\ equal.
+$$
+
+    For block:
+    We use $\mu_{b0}$ to denote the average working hour of prodessors work in faculty of business, and $\mu_{b1}$ to denote the average working hour of prodessors work in faculty of engineering, $\mu_{b2}$ to denote the average working hour of prodessors work in faculty of arts, $\mu_{b3}$ to denote the average working hour of prodessors work in faculty of science.
+
+$$
+H0: \mu_{b0} = \mu_{b1} = \mu_{b2} = \mu_{b3}\\
+H1: Not\ all\ the\ means\ for\ blocks\ are\ equal
+$$
+
+    For Interaction between two factors:
+    We use factor 1 to denote the rank of the professor, factor 2 to denote the faculty they work in.
+
+$$
+H_0:\ Factor\ 1\ and\ 2\ do\ not\ interact\ to\ affect\ the\ mean\ response.\\
+H_1:\ Factor\ 1\ and\ 2\ interact\ to\ affect\ the\ mean\ response.\
+$$
+
+
+```{R}
+out7<-aov(y~treatment+block+treatment*block, data = df7)
+print(summary(out7))
+```
+    Since the p-value of interaction = 0.00438, we have enough evidence to say that there is interaction between two factors.
+
+###e
+    Since there is interaction between two factors, we can't conclude if there is difference between the four rank of professors.
+###f
+    Since there is interaction between two factors, we can't conclude if there is difference between the four faculties.
+
+##15.11
+    We use the multinomial goodness of fit test to test if the professor does randomly distribute the correct answer over the 5 choices.
+    Let the proportion of the $choice_i$ be $p_i$.
+    Hypothesis:
+    
+$$
+H_0:p_a=p_b=p_c=p_d=p_e=0.20\\
+H_1:At\ least\ one\ p_i\neq 0.20\ where\ i =a,b,c,d\ or\ e 
+$$
+
+```{r}
+df3 <- read.csv("Xr15-11.csv",header = 1)
+nobs = nrow(df3)
+
+choice <- df3$Correct.choice
+choice_tab = table(choice)
+#print(choice_tab)
+prob3 = c(rep(0.2,5))
+enobs = nobs * prob3
+
+df33 = length(prob3)-1
+p <- as.list(choice_tab)
+actual3 <- c(0:0)
+for (i in 1:5) {
+  actual3[i] <- p[[i]]
+}
+#print(actual3)
+
+if(sum(enobs <5) > 0) {
+    cat("Rule of Five not meet.\n")
+} else {
+    out3=chisq.test(actual3, p=prob3)
+    print(out3)
+}
+```
+    Since p-value > 0.05, so we do not reject $H_0$, the assumption that the professor randomly distributes the correct answer over the 5 choices.
+    Since the proportions of the 5 answers do not differ a lot from one another, Pat can guess the questions randomly.
+    
+##15.16
+    We use the multinomial goodness of fit test to test if the rookie differs from all other pitchers.
+    Let the proportion of the $pitch_i$ be $p_i$.
+    Hypothesis:
+    
+$$
+H_0:The\ rookie\ does\ not\ differ\ from\ all\ other\ pitchers.\\
+H_1:The\ rookie\ differs\ from\ all\ other\ pitchers.
+$$
+
+```{r}
+df6 <- read.csv("Xr15-16.csv",header = 1)
+tab6 = table(df6)
+print(tab6)
+nobs = nrow(df6)
+
+prob6 = c(0.4,0.144,0.178,0.095,0.183)
+enobs = nobs * prob6
+
+df66 = length(prob6)-1
+p <- as.list(tab6)
+actual6 <- c(0:0)
+for (i in 1:5) {
+  actual6[i] <- p[[i]]
+}
+#print(actual6)
+
+if(sum(enobs <5) > 0) {
+    cat("Rule of Five not meet.\n")
+} else {
+    out6=chisq.test(actual6, p=prob6)
+    print(out6)
+}
+```
+    Since p-value < significance level 5%, there is enough evidence to conclude that the rookie differs from all other pitchers.
+##15.33
+    We use the multinomial goodness of fit test to test if political affiliation affects support for the economic options.
+    Hypothesis:
+    
+$$
+H_0:The\ political\ affiliation\ does\ not\ affect\ support\ for\ the\ economic\ options.\\
+H_1:The\ political\ affiliation\ affects\ support\ for\ the\ economic\ options. 
+$$
+
+```{r}
+options = c("cut spending","raise taxes","inflate the economy","let deficit increase")
+democrate = c(101,38,131,61)
+republican = c(282,67,88,90)
+independent = c(61,25,31,25)
+
+df4 = data.frame(democrate = democrate, republican = republican,independent = independent)
+cat("Contingency table:\n")
+print(df4)
+out4=chisq.test(df4, correct=FALSE)
+print(out4)
+
+```
+
+    Since p-value < significance level 1%, we can conclude at the 1% significance level that the political affiliation affects support for the economic options.
+    
+##15.41
+    We use Chi-squared test of a contingency table to test that the research findings for calcium-channel blockers are affected by whether the research is funded by drug companies or not.
+    Hypothesis:
+    
+$$
+H_0:The\ ties\ to\ drug\ companies\ or\ not\ do\ not\ affect\ the\ research\ findings.\\
+H_1:The\ ties\ to\ drug\ companies\ or\ not\ affect\ the\ research\ findings.
+$$    
+    
+```{r} 
+df5 <- read.csv("Xr15-41.csv",header = 1)
+tab5 = table(df5)
+cat("Contingency table:\n")
+print(tab5)
+out5=chisq.test(tab5, correct=FALSE)
+print(out5)
+
+```
+    Since p-value < 0.05, these data allow us to infer that the research findings are affected by whether the research is funded by drug companies.

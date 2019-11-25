@@ -1,0 +1,513 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics XI Homework Ch17,18_Textbook
+##17.03
+###1 
+Multicollinearity
+```{r}
+#data processing
+data1 <- read.csv("Xr17-03.csv",header = 1)
+drywall <- data1$Drywall
+permits <- data1$Permits
+mortgage <- data1$Mortgage
+a_vacancy <- data1$A.Vacancy
+o_vacancy <- data1$O.Vacancy
+Data.Drywall <- cbind(permits,mortgage,a_vacancy,o_vacancy)
+#
+cor(Data.Drywall)
+```
+Since each of |r| between the independent variables < 0.7, we can infer that multicollinearity is not a problem.
+
+###2
+Autocorrelation
+
+We use	Durbin-Watson Statistic to detect auto-correlation between consecutive residuals in a time series.
+    
+    2-tail test for first order auto-correlation:
+
+$$
+H_0:\ The\ data\ are\ not\ first-order\ correlated.\\
+H_1:\ The\ data\ are\ first-order\ correlated.
+$$
+
+```{r}
+standarized_errors_MR <- function(y, x) {
+   n <- length(y)
+   k <- ncol(x)
+   x1 <- vector("double", length = n)
+   for(j in 1:n) {
+      x1[j] <- 1
+      }
+   Matrix_X <- cbind(x1, x)
+   Matrix_Y <- cbind(y)
+   Matrix_H <-  Matrix_X%*%solve(t(Matrix_X)%*%Matrix_X)%*%t(Matrix_X)
+   Matrix_YP <-  Matrix_H%*%Matrix_Y
+   y_p <- Matrix_YP[,1]
+   h <- vector("double", length = n)
+   D <- vector("double", length = n)
+      Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   se <- sqrt(sum((y - y_p)^2)/(n - k - 1))
+   for(i in 1:n) {
+      h[i] <- Matrix_H[i,i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      D[i] <- (y[i] - y_p[i])^2 * h[i] / ((k -1) * se^2 * (1 - h[i])^2)
+      }
+   SEhD <- cbind(Standard_E, h, D)
+   return(SEhD)
+}
+```
+
+```{r}
+SE <- standarized_errors_MR(drywall, Data.Drywall)[ ,1]
+
+Durbin_Watson_Test <- function(x) {
+   x_square_sum <- sum(x*x)
+   n <- length(x)
+   x_d <- vector("double", length = n)
+   x_d[1] = 0
+   for(j in 2:n) {
+      x_d[j] <- x[j] - x[j - 1]
+      }
+   d <- sum(x_d*x_d) / x_square_sum
+    return(d)
+}
+cat("# # # # The Durbin Watson Test # # # ","\n")
+DW_test <- Durbin_Watson_Test(SE)
+print(DW_test)
+n <- length(drywall)
+k <- ncol(Data.Drywall)
+cat("k = ",k,", n =  ",n)
+```
+
+From the table of Durbin-Watson Statistic(k = 4, n = 24), we find $d_L$ = 1.01 and $d_U$ = 1.78.
+Since $d_L < $d = 1.774199 < $d_U$ , the test is inconclusive.
+
+##17.07
+###1 
+Multicollinearity
+```{r}
+#data processing
+data2 <- read.csv("Xr17-07.csv",header = 1)
+sales <- data2$Sales
+direct <- data2$Direct
+newspaper <- data2$Newspaper
+TV <- data2$Television
+Data.Sales <- cbind(direct,newspaper,TV)
+#
+cor(Data.Sales)
+```
+Since each of |r| between the independent variables < 0.7, we can infer that multicollinearity is not a problem.
+
+###2
+Autocorrelation
+We use	Durbin-Watson Statistic to detect auto-correlation between consecutive residuals in a time series.
+    
+    2-tail test for first order auto-correlation:
+
+$$
+H_0:\ The\ data\ are\ not\ first-order\ correlated.\\
+H_1:\ The\ data\ are\ first-order\ correlated.
+$$
+
+
+```{r}
+SE <- standarized_errors_MR(sales, Data.Sales)[ ,1]
+
+cat("# # # # The Durbin Watson Test # # # ","\n")
+DW_test <- Durbin_Watson_Test(SE)
+print(DW_test)
+n <- length(sales)
+k <- ncol(Data.Sales)
+cat("k = ",k,", n =  ",n)
+```
+
+From the table of Durbin-Watson Statistic(k = 3, n = 25), we find $d_L$ = 1.12 and $d_U$ = 1.66.
+Since $d_U$ < d = 1.91286 < 2 , there is sufficient evidence to infer that first order auto-correlation does not exist.
+
+##17.13
+###1 
+Multicollinearity
+```{r}
+#data processing
+data3 <- read.csv("Xr17-13.csv",header = 1)
+lottery <- data3$Lottery
+education <- data3$Education
+age <- data3$Age
+children <- data3$Children
+income <- data3$Income
+Data.Lottery <- cbind(education,age,children,income)
+#
+cor(Data.Lottery)
+```
+Since |r| between "Income" and "Education" > 0.7, it is not possible to determine the separate effect of any particular independent variable on the dependent variable.
+we can infer that multicollinearity is a problem.
+
+###2
+Autocorrelation
+We use	Durbin-Watson Statistic to detect auto-correlation between consecutive residuals in a time series.
+    
+    2-tail test for first order auto-correlation:
+
+$$
+H_0:\ The\ data\ are\ not\ first-order\ correlated.\\
+H_1:\ The\ data\ are\ first-order\ correlated.
+$$
+
+
+```{r}
+SE <- standarized_errors_MR(lottery, Data.Lottery)[ ,1]
+
+cat("# # # # The Durbin Watson Test # # # ","\n")
+DW_test <- Durbin_Watson_Test(SE)
+print(DW_test)
+n <- length(lottery)
+k <- ncol(Data.Lottery)
+cat("k = ",k,", n =  ",n)
+```
+
+From the table of Durbin-Watson Statistic(k = 4, n = 100), we find $d_L$ = 1.461 and $d_U$ = 1.625.
+```{r}
+dU = 1.625
+cat("4-dU = ",4 - dU)
+```
+Since 2 < d = 2.032798 < 4 - $d_U$, there is sufficient evidence to infer that first order auto-correlation does not exist.
+
+##17.57
+###a
+```{r}
+#data processing
+data1 <- read.csv("Xr17-57.csv",header = 1)
+tires <- data1$Tires
+snowfall <- data1$Snowfall
+#Scatter diagram
+plot(snowfall,tires,col="blue",main = " Sales of SnowTires against Snowfall",xlab="Snowfull(in inches) Each Week",ylab="Weekly Sales of Snow Tires")
+abline(lm(tires~snowfall))
+#
+linearModelVar <- lm(tires ~ snowfall)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+    Propose a statistical model:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x\ +\ \varepsilon
+$$
+
+y = number of snow tires sold weekly
+
+x = amount of snowfall (in inches) in each week
+
+$\varepsilon$ = error variable
+
+    From the printout, we can get the regression model:
+
+$$
+\hat{y} =\ 898.011 \ +\ 11.327x
+$$
+
+###b
+(1)Multicollinearity
+
+The model does not have a multicollinearity problem, since there is only one independent variable.
+
+(2)Autocorrelation
+
+```{r}
+linearModelVar <- lm(tires ~ snowfall)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+The model seems to be very poor:
+a. The fit is low(R-square = 0.3774)
+b. The variable is not linearly related to sales, since p-value of t-test = 0.00235 < 0.05.
+We use	Durbin-Watson Statistic to detect auto-correlation between consecutive residuals in a time series.
+    
+    2-tail test for first order auto-correlation:
+
+$$
+H_0:\ The\ data\ are\ not\ first-order\ correlated.\\
+H_1:\ The\ data\ are\ first-order\ correlated.
+$$
+
+```{r}
+standarized_errors <- function(y, x) {
+   n <- length(y)
+   linearModelVar <- lm(y ~ x)
+   a <- coef(linearModelVar)[1]
+   b <- coef(linearModelVar)[2]
+   se <- sigma(linearModelVar)
+   x_mean <- mean(x)
+   x_var <- var(x)
+   h <- vector("double", length = n)
+   y_p <- vector("double", length = n)
+   Error <- vector("double", length = n)
+   Standard_E <- vector("double", length = n)
+   for(i in 1:n) {
+      h[i] <- (1/n) + (x[i] - x_mean)^2 / (x_var * (n - 1))
+      y_p[i] <- a + b * x[i]
+      Error[i] <- y[i] - y_p[i]
+      Standard_E[i] <- Error[i] / (se * sqrt(1 - h[i]))
+      }
+    SEh <-cbind(Standard_E,h)
+    return(SEh)
+}
+```
+
+```{r}
+SE <- standarized_errors(tires, snowfall)[ ,1]
+
+Durbin_Watson_Test <- function(x) {
+   x_square_sum <- sum(x*x)
+   n <- length(x)
+   x_d <- vector("double", length = n)
+   x_d[1] = 0
+   for(j in 2:n) {
+      x_d[j] <- x[j] - x[j - 1]
+      }
+   d <- sum(x_d*x_d) / x_square_sum
+    return(d)
+}
+cat("# # # # The Durbin Watson Test # # # ","\n")
+DW_test <- Durbin_Watson_Test(SE)
+print(DW_test)
+n <- length(tires)
+cat("n =  ",n)
+```
+
+From the table of Durbin-Watson Statistic(k = 1, n = 22), we find $d_L$ = 1.24 and $d_U$ = 1.43.
+Since d = 1.016998 < $d_L$ = 1.24, there is sufficient evidence to infer that positive first order auto-correlation exists.
+
+(3)
+Normality
+
+    Hypothesis:
+    
+$$
+H_0:Errors\ are\ normally\ distributed.\\
+H_1:Errors\ are\ not\ normally\ distributed.
+$$
+
+    Apply the Shapiro-Wilks test of normality.
+```{r}
+SE <- standarized_errors(tires, snowfall)[ ,1]
+hist(SE,main = "Histogram of SE of the Sales of the Tires")
+cat("# # # # The Normality Test # # # ","\n")
+norm_test <- shapiro.test(SE)
+print(norm_test)
+```
+    Because p_value = 0.9639 > 0.05, do not rejected H0. We can assume that errors are normally distributed.
+
+(4)
+Constant Variation
+
+    Hypothesis:
+
+$$
+H_0:Homoscedasticity\\
+H_1:Heteroscedasticity
+$$
+
+    Scatter plot:
+```{r}
+SE <- standarized_errors(tires, snowfall)[ ,1]
+n <- length(tires)
+linearModelVar <- lm(tires ~ snowfall)
+a <- coef(linearModelVar)[1]
+b <- coef(linearModelVar)[2]
+Price_p <- vector("double", length = n)
+for(i in 1:n) {
+  Price_p[i] <- a + b * snowfall[i]
+}
+plot(x = Price_p,y = SE,  xlab = "Predicted Sales",  ylab = "Standardized Error", main = "Predicted Price vs Standard Errors")
+```
+    
+    Conclusion:
+    Do not rejected H0. We can assume that the variation is constant and the mean is around 0.
+    Heteroscedasticity is NOT a problem.
+    
+###c
+Add a time independent variable(t) to the model.
+
+```{r}
+time <- data1$Time
+n <- length(tires)
+for(i in 1:n)
+{
+  time[i] = i-1
+}
+```
+
+###d
+```{r}
+Data.Tires <- cbind(snowfall,time)
+new_linearModelVar <- lm(tires ~ Data.Tires)
+cat("# # # # The regression model # # # ","\n")
+print(summary(new_linearModelVar))
+```
+From the printout, R-squared = 0.704, which has a significant improvement to the initial one(0.3774).
+We can infer that 70.4% of the variation in the sale of snow tires is explained by the new model of the 2 independent variables.  Only 29.6% remains unexplained by this model.
+
+###e
+New model:
+$$
+\hat{y} =b_0\ +\ b_1x\ +\ b_2t\\ =\ 952.886 \ +\ 13.885x -7.687t
+$$
+Use t-test to test the coefficients.
+    
+    Hypothesis for the two coefficients(i = 1,2):
+
+$$
+H_0:\beta_i = 0\\
+H_1:\beta_i \neq 0
+$$
+
+```{r}
+Data.Tires <- cbind(snowfall,time)
+new_linearModelVar <- lm(tires ~ Data.Tires)
+cat("# # # # The regression model # # # ","\n")
+print(summary(new_linearModelVar))
+```
+1. for $\beta_1$:
+Since p-value = 1.2e-05 < 0.05, we reject H0.
+We conclude that the relationship between the two variables is significant.
+
+2. for $\beta_2$:
+Since p-value = 0.000205 < 0.05, we reject H0.
+We conclude that the relationship between the two variables is significant.
+
+##18.3
+```{r}
+#data processing
+data4 <- read.csv("Xr18-03.csv",header = 1)
+sales2 <- data4$Sales
+space <- data4$Space
+#Scatter diagram
+plot(space,sales2,col="blue",main = " Sales of against Space",xlab="shelf space(in inches)",ylab="number of boxes of detergent sold")
+#abline(lm(sales2~space))
+lines(lowess(space, sales2), col="blue")
+#
+linearModelVar <- lm(sales2 ~ space)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+R-squared = 0.02709, the model does not fit the data well.
+From the diagram above, we can infer that there is a quadratic relationship between sales and shelf space.
+
+    Regression model:
+    
+$$
+Sales\ = \beta_0\ +\ \beta_1Space\ +\ \beta_2Space^2\ +\ \varepsilon 
+$$
+
+```{r}
+data4 <- read.csv("Xr18-03.csv",header = 1)
+sales2 <- data4$Sales
+space <- data4$Space
+space_sq <- space^2
+Data.Sales2_New <- cbind(space,space_sq)
+linearModelVar <- lm(sales2 ~ Data.Sales2_New)
+print(summary(linearModelVar))
+```
+
+From the printout, we can infer that the regression model equation:
+
+$$
+Sales\ = -108.99\ +\ 33.09Space\ -\ 0.67Space^2\ +\ \varepsilon 
+$$
+
+###b
+From the printout above, we have R-squared = 0.4068
+We can infer that 40.68% of the variation in the sale of detergent is explained by the model of the quadratic equation.  The rest(59.32%) remains unexplained by this model.
+
+##18.9
+###a
+```{r}
+#data processing
+data5 <- read.csv("Xr18-09.csv",header = 1)
+goal <- data5$Goal.diff
+faceoff <- data5$Faceoff
+penalty <- data5$PM.diff
+#scatter diagram
+plot(faceoff, goal, col = "blue", main = "Face-off/PM-diff against Goal-diff", xlab = "Face-off or PM-diff", ylab = "Goal-diff", xlim=range(faceoff, penalty))
+points(penalty,goal, col= "red")
+lines(lowess(faceoff, goal), col="blue")
+lines(lowess(penalty, goal), col="red")
+
+```
+
+    First-order model with interaction:
+    
+$$
+y\ =\ \beta_0\ +\ \beta_1x_1\ +\ \beta_2x_2\ +\ \beta_3x_1x_2\ +\ \varepsilon
+$$
+
+y = the diff. between the number of goals their teams scores and those scored by their team's opponents.
+
+$x_1$ = the percentage of face-offs won
+
+$x_2$ = the penalty-minutes differential
+
+$\varepsilon$ = error variable
+
+```{r}
+faceoff_penalty <- faceoff * penalty
+Data.Goal_Inter <- cbind(faceoff,penalty,faceoff_penalty)
+linearModelVar <- lm(goal ~ Data.Goal_Inter)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+
+    From the printout, we can get the regression model:
+
+$$
+\hat{y} =\ -4.86\ +\ 0.12x_1 \ +\  0.13x_2\ -\ 0.0009 x_1x_2
+$$
+
+###b
+We use the F-test of ANOVA to test the validity of the model
+
+    Hypothesis:
+    
+$$
+H_0: \beta_1\ =\ \beta_2\ =\ \beta_3\ =\ 0\\
+H_1: At\ least\ one\ \beta_i\ is\ not\ equal\ to\ 0.
+$$
+
+```{r}
+linearModelVar <- lm(goal ~ Data.Goal_Inter)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The ANOVA Table # # # ","\n")
+print(ANOVA_T_lm)
+```
+Since p-value = 0.001866 < 0.05, we reject $H_0$.
+There is sufficient evidence to reject the null hypothesis in favor of the alternative hypothesis. At least one of the $b_i$ is not equal to zero. Thus, at least one independent variable is related to y. This regression model is valid.
+
+###c
+Use t-test to test the coefficient og the interaction $b_3$
+
+    Hypothesis:
+    
+$$
+H_0:\ \beta_3\ =\ 0\\
+H_1:\ \beta_3\ \neq\ 0
+$$
+
+```{r}
+linearModelVar <- lm(goal ~ Data.Goal_Inter)
+ANOVA_T_lm <- anova(linearModelVar)
+cat("# # # # The regression model # # # ","\n")
+print(summary(linearModelVar))
+```
+Since p-value = 0.90860 > 0.05, we reject H0.
+We conclude that the relationship between the interaction term and y is not significant.
+
+Maybe it should not be included.

@@ -1,0 +1,161 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+#Statistics I Homework Ch5_Textbook
+
+##5.3
+a.抽樣調查有抽菸的群體和沒有抽過菸的群體，他們患有肺癌的比率各是多少，分析兩者差異。
+b. observational 因為抽菸傷身，而且做這個實驗需要讓大量的人去抽菸，然後要花好幾十年來追蹤他們有沒有得肺癌，不符合時間效益，並且會對那些人的身體產生不可逆的傷害。
+##5.9
+這是convenience sampling的例子，因為受訪者都是有在收email的人，造成self-selection bias。如此一來，我們將無法確定這些受訪者的問答結果是否具有全體的代表性。
+##5.13
+	用stratified random sampling，將大學部、研究所等等的群體總人數記錄下來，用個群體佔總人數的比率來分配各個群體要抽的樣本個數。
+##5.19
+	有可能，用sample算出的結果會和母體參數有差距，而sample size越小時，差距就可能越大，誤差可能造成最終結果比母體參數還要好。
+
+#Statistics I Homework Ch5_A1
+
+
+
+###data pre-processing:
+```{r}
+data <- read.csv("sampling.csv" ,header = 1)
+
+```
+##1
+將column指向目標Fruit and Vegetables，算出mean, population variance和adjusted population variance，前兩者有函式可直接算出，而adjusted population variance則是用母體的變異數*n/(n - 1) 
+```{r}
+columnD <- data$Fruit.and.Vegetables
+mean_p =mean(columnD)
+var_p =var(columnD)
+var_s =var(columnD)*24000/23999
+cat(mean_p,'\n',var_p,'\n',var_s)
+```
+mean:3.644421
+population variance:0.7164121
+adjusted population variance:0.7164419
+
+##2
+先設好seed，用column A的編號來抽隨機變數，再用對應的column D去算mean跟variance
+```{r}
+set.seed(32535)
+columnA <- data$Frame.No.
+s1 = sample(columnA,240)
+resultofs1 = data[s1,]
+m1 = mean(resultofs1$Fruit.and.Vegetables)
+var1 = var(resultofs1$Fruit.and.Vegetables)
+cat(m1,"\n",var1)
+```
+mean:3.567917
+variance:0.7642802
+
+##3
+
+```{r}
+
+abs(mean_p-m1)
+abs(var_p-var1)
+abs(var_s-var1)
+```
+the absolute value:0.07650417
+與population variance的差距:0.0478681
+與adjusted population variance的差距:0.04789795
+由此可見，和population variance的差距較與adjusted population variance的差距小。
+
+##4
+設好seed並且開三個陣列分別存放與母體mean差距、與population variance差距、與adjusted population variance的差距。將每次的差距紀錄下來，最後算出三者的RMSE。
+```{r}
+set.seed(1118)
+ssize = 240
+nrun = 1000
+err_m_all = vector(mode = "numeric", length = nrun)
+err_v_p_all = vector(mode = "numeric", length = nrun)
+err_v_s_all = vector(mode = "numeric", length = nrun)
+for(runid in 1:nrun) {
+    s2 = sample(columnA, ssize)
+    resultofs2 = data[s2,]
+    m2 = mean(resultofs2$Fruit.and.Vegetables)
+    var2 = var(resultofs2$Fruit.and.Vegetables)
+    #cat(m2, "\n")
+    err_m = (mean_p - m2)^2
+    err_v_p = (var_p - var2)^2
+    err_v_s = (var_s - var2)^2
+    err_m_all[runid] = err_m
+    err_v_p_all[runid] = err_v_p
+    err_v_s_all[runid] = err_v_s
+}
+
+avg_err_m = sqrt(mean(err_m_all)) 
+avg_err_v_p = sqrt(mean(err_v_p_all))
+avg_err_v_s = sqrt(mean(err_v_s_all))
+cat("Average sampling error (mean)", avg_err_m, "\n")
+cat("Average sampling error (varaiance_p)", avg_err_v_p, "\n")
+cat("Average sampling error (varaiance_s)", avg_err_v_s, "\n")
+
+```
+Average sampling error (mean): 0.05383188 
+Average sampling error (varaiance_p): 0.06491478 
+Average sampling error (varaiance_s): 0.06491507 
+我們發現，算出來的變異數仍然較接近母體未調整的值。
+
+##5
+算出題目所述各種size下sample的mean和unbiased variance，最後另外算了size算了size = 5時的結果，和題目給的size公比為2(除了最後一個size)，方便比較。
+```{r}
+ssize = vector(mode = "numeric", length = 11)
+mofsize = vector(mode = "numeric", length = 11)
+varofsize = vector(mode = "numeric", length = 11)
+ssize[1] = 10
+ssize[2] = 20
+ssize[3] = 40
+ssize[4] = 80
+ssize[5] = 160
+ssize[6] = 320
+ssize[7] = 640
+ssize[8] = 1280
+ssize[9] = 2560
+ssize[10] = 5120
+ssize[11] = 12800
+nrun = 200
+nsize = 1
+mm= vector(mode = "numeric", length = nrun)
+for(runid in 1:11) {
+  for(runid in 1:nrun) {
+    ss = sample(columnA, ssize[nsize],replace = TRUE)
+    resultofss = data[ss,]
+    mm[runid] = mean(resultofss$Fruit.and.Vegetables)
+  }  
+  mofsize[nsize] = mean(mm)
+  varofsize[nsize] = var(mm)*ssize[nsize]/(ssize[nsize]-1)
+  cat("size =",ssize[nsize],"mean = ",mofsize[nsize],"unbiased var = ",varofsize[nsize],"\n")
+  nsize = nsize + 1
+}
+
+plot(ssize,varofsize,"b",main="relationship between sample size and variance",xlab="sample size",ylab="unbiased variance")
+
+
+#10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 12800
+```
+
+size = 10 mean =  3.6183 unbiased var =  0.07148198 
+size = 20 mean =  3.664425 unbiased var =  0.0373489 
+size = 40 mean =  3.670075 unbiased var =  0.01889975 
+size = 80 mean =  3.6372 unbiased var =  0.009541302 
+size = 160 mean =  3.652741 unbiased var =  0.005572764 
+size = 320 mean =  3.647514 unbiased var =  0.002148651 
+size = 640 mean =  3.644738 unbiased var =  0.001083647 
+size = 1280 mean =  3.646073 unbiased var =  0.0005538417 
+size = 2560 mean =  3.64475 unbiased var =  0.0002769917 
+size = 5120 mean =  3.64385 unbiased var =  0.0001435771 
+size = 12800 mean =  3.644728 unbiased var =  6.118308e-05 
+another size =5 mean =  3.6097 unbiased var =  0.1669697 
+由圖可知，當size越大時，unbiased variance會越來越小，兩者呈負相關。
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Statistics V Homework Ch12_Textbook
+
+##12.25
+    H0:mean<=20
+    H1:mean>20
+    To determine if the mean > 20, we have to calculate the mean and standard deviation of samples. Also, the t critical value at 5% significant level.
+```{r}
+data <- read.csv("Xr12-25.csv",header = 1)
+w <- data$Overweight
+m1 = mean(w)
+sd1 = sd(w)
+n1 = nrow(data)
+siglevel = .05
+tcv = qt(1-siglevel,n1-1)
+ucl = m1 + tcv * sd1 / sqrt(n1)
+cat("mean = ",m1,"\nstd. dev.= ",sd1,"\nNumber of observation = ",n1,"\nt critical value = ",tcv,"\nucl = ",ucl)
+```
+    Since the sample mean(20.85 < 23.46417), we don't have sufficient evidence to reject the null hypothesis.
+
+##12.27
+    With 95% confidence level, we have to calculate [lcl,ucl], using two-tail test method.
+```{r}
+data <- read.csv("Xr12-27.csv",header = 1)
+t <- data$Time
+m2 = mean(t)
+sd2 = sd(t)
+n2 = nrow(data)
+siglevel = .05
+tcv = qt(1-siglevel/2,n2-1)
+lcl = m2 - tcv * sd2 / sqrt(n2)
+ucl = m2 + tcv * sd2 / sqrt(n2)
+cat("mean = ",m2,"\nstd. dev.= ",sd2,"\nNumber of observation = ",n2,"\nt critical value = ",tcv,"\n[lcl,ucl] = [",lcl,ucl,"]")
+
+```
+    With 95% confidence,the mean amount of time left for all the city's meters is covered by the interval.
+    
+##12.75
+    At a 10% significance level, we have to determine that if variance = 23. If the sample variance is upper than the chi critical value right tail or lower than the chi critical value left tail, we can say the variability has changed.
+```{r}
+data <- read.csv("Xr12-75.csv",header = 1)
+mil <-data$Mileage
+m3 = mean(mil)
+sd3 = sd(mil)
+v3 = var(mil)
+n3 = nrow(data)
+h0sd = 23
+siglevel = 0.1
+chistat = (n3-1)*sd3^2/h0sd^2
+chicv_left = qchisq(siglevel/2,n3-1)
+chicv_right = qchisq(1-siglevel/2,n3-1)
+scv_left = chicv_left*h0sd^2/(n3-1)
+scv_right = chicv_right*h0sd^2/(n3-1)
+p_twotail = pchisq(chistat,n3-1)*2
+cat("mean = ",m3,"\nstd. dev.= ",sd3,"\nvar = ",v3,"\nnumber of observation = ",n3,"\nchistat = ",chistat,"\nchi critical value left tail = ",chicv_left,"\nchi critical value right tail =",chicv_right,"\np-value(two-tail) = ",p_twotail)
+
+```
+    Since the sample variance(16.5)is higher thanchi critical value right tail(14.06714), we can say the variability has changed.
+    
+##12.79
+    we have to estimate the population variance by the confidence interval of 90%.
+```{r}
+data = read.csv("Xr12-79.csv",header = 1)
+o = data$Offers
+m4 = mean(o)
+sd4 = sd(o)
+v4 = var(o)
+n4 = nrow(data)
+siglevel = 0.1
+chicv_minusalpla = qchisq(1-siglevel/2,n4-1)
+chicv_alpha = qchisq(siglevel/2,n4-1)
+scv_up = (n4-1)*sd4^2/chicv_alpha
+scv_down = (n4-1)*sd4^2/chicv_minusalpla
+cat("mean = ",m4,"\nstd. dev.= ",sd4,"\nvar = ",v4,"\nnumber of observation = ",n4,"\ninterval = [",scv_down,",",scv_up,"]")
+
+```
+
+    we are 90% confidence that the interval  covers the real variance in the number of job offers made to the university's graduates.
+
+

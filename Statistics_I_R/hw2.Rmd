@@ -1,0 +1,151 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+#Statistics II Homework Ch5_Textbook
+
+##9.29
+###a
+```{r}
+pnorm(12,mean=10,sd=3,lower.tail = FALSE)
+```
+###b
+mean number of pizzas consumed by 25 students
+= 10
+standard deviation 
+= 3/ {sqrt(25)} = 0.6
+```{r}
+m = 275/25
+pnorm(m,10,sd=0.6,lower.tail = FALSE)
+```
+##9.35
+mean weight of the 16 people 
+= 75
+standard deviation =10/{sqrt(16)} = 2.5
+```{r}
+m = 1140/16
+pnorm(m,75,sd=2.5,lower.tail = FALSE)
+```
+##9.51
+n = 1000 p = 0.3
+np = 300 > 5
+n(1-p) = 700 > 5
+so z = (^p-p)/sqrt(p*(1-p)/n)
+= (0.32-0.3)/sqrt(0.3*0.7/1000)
+```{r}
+z = (0.32-0.3)/sqrt(0.3*0.7/1000)
+p = pnorm(z,lower.tail = FALSE)
+cat("z = ", z,"\nP(^p > .32) = ",p)
+```
+##9.53
+n = 350 p = 0.8
+np = 280 > 5
+n(1-p) = 70 > 5
+so z = (^p-p)/sqrt(p*(1-p)/n)
+= (.75-.8)/sqrt(.8*(.2)/350)
+```{r}
+z = (.75-.8)/sqrt(.8*(.2)/350)
+p = pnorm(z)
+cat("z = ", z,"\nP(^p < .75) = ",p)
+```
+#hw_ch9
+##data pre-processing:
+```{r}
+genpop1=function(size=10000, mixprob=0.6, m1=100, sd1=10, m2=150, sd2=20) {
+    tmpseed = .Random.seed#1001
+    set.seed(5523)    
+    #flip coins with mixprob success prob.
+    coin1 = runif(size) < mixprob    
+    
+    rn1 = rnorm(size, m1, sd1)
+    rn2 = rnorm(size, m2, sd2)
+    
+    rnfinal = rn2
+    rnfinal[coin1] = rn1[coin1]
+    .Random.seed = tmpseed#1001
+    return(rnfinal)
+    plot(size,rnfinal,type = 'l',ylim = c(0,max(genpop1(),genpop2())))
+}
+
+genpop2 = function(size=12000, lambda=140) {
+    tmpseed = .Random.seed#1001
+    set.seed(5524)
+    tmp1 = rpois(size, lambda)
+    .Random.seed = tmpseed#1001
+    return(tmp1)
+}
+
+set.seed(1001) #to get .Random.seed defined.
+pop1 = genpop1()
+pop2 = genpop2()
+
+```
+##1
+算出兩個母體的平均數和標準差
+```{r}
+mean_p1 = mean(pop1)
+sd_p1 = sqrt(var(pop1))
+mean_p2 = mean(pop2)
+sd_p2 = sqrt(var(pop2))
+cat("P1:\n size = 10000\n","mean = ",mean_p1,"\n standard deviation = ",sd_p1)
+cat("\nP2:\n size = 12000\n","mean = ",mean_p2,"\n standard deviation = ",sd_p2)
+```
+from the result, we found that the mean of pop2 is bigger than that of pop1. Also, the size of pop2 is bigger, but the standard deviation of pop2 is smaller.
+->pop1 is more scattered than pop2. 
+
+##2
+```{r}
+hist(pop1)
+hist(pop2)
+```
+##3
+based on the sampling distribution properties, 
+the mean of(x1-x2) = mean of pop1 - mean of pop2 
+standard deviation = sqrt(sd1^2/n1+sd2^2/n2)
+```{r}
+n1 = 100
+n2 = 50
+m_3 = mean_p1 - mean_p2
+sd_3 = sqrt(sd_p1^2/n1+sd_p2^2/n2)
+cat("when n1 = 100 n2 = 50\nmean = ", m_3,"\nstandard deviation = ",sd_3)
+```
+from the result, we know that the mean would not differ from the sample size.
+
+##4
+```{r}
+set.seed(5000)
+dlist = c()
+for(i in 1:50){
+  s1 = sample(pop1, 100, replace = FALSE)
+  s2 = sample(pop2, 50, replace = FALSE)
+  d = mean(s1)-mean(s2)
+  dlist[i] = d
+}
+m_4 = mean(dlist)
+sd_4 = sd(dlist)
+cat("mean:",m_4," \nstandard deviation:",sd_4)
+```
+##5
+```{r}
+run = c(50,100,500,1000,5000,10000,50000)
+mofrun = vector(mode = "numeric", length = 7)
+sdofrun = vector(mode = "numeric", length = 7)
+cnt = 1
+for(i in 1:7)
+{
+  for(i in 1:run[cnt]){
+  s1 = sample(pop1, 100, replace = FALSE)
+  s2 = sample(pop2, 50, replace = FALSE)
+  d = mean(s1)-mean(s2)
+  dlist[i] = d
+  }
+  mofrun[cnt] = mean(dlist)
+  sdofrun[cnt] = sd(dlist)
+  cat("nrun = ", run[cnt],",mean = ",mofrun[cnt],",standard deviation = ",sdofrun[cnt],"\n")
+  cnt = cnt + 1
+}
+```
+the more times we run, the result seems not to be exactly closer to a fixed number.

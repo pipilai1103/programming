@@ -1,0 +1,192 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics IV Homework Ch14_Textbook
+
+##14.61
+###a
+    We use Fisher’s Least Significant Difference (LSD) method with Beonferroni adjustment to find which pair of means differ.
+    We use $\mu_0$ to denote the average score in school A, and use $\mu_1$ to denote the average score in school B, and use $\mu_2$ to denote the average score in school C, and use $\mu_3$ to denote the average score in school C.
+$$
+H_0: \mu_0 = \mu_1 = \mu_2 = \mu_3 \\
+H_1: Not\ all\ population\ means\ are\ equal
+$$
+   
+    Let C be the the number of pair-wise comparisons. C =  k (k – 1) / 2 where k is the number of populations (treatments).
+    Set a = $a_E/C$, where $a_E$ is the true probability of making at least one type I error (called experiment-wise type I error).
+```{r}
+data1 = read.csv("Xr14-09.csv", header=T)
+nobs = nrow(data1)
+df2=data.frame(y=c(data1[,1], data1[,2], data1[,3], data1[,4]), a=factor(c(rep("A", nobs), rep("B", nobs), rep("C", nobs), rep("D", nobs))))
+out1 = aov(y~a, data=df2)
+library(agricolae)
+out = LSD.test(out1, trt="a" , alpha = 0.05, p.adj="bonferroni", group=FALSE ,console=TRUE)
+```
+    From the result shown above, we reject the null hypothesis of μ1=μ3. Thus the average score of school A and school C differs.
+###b
+    We use Tukey’s multiple comparison method to find which pair of means differ. We use μ0 to denote the average score in school A, and use μ1 to denote the average score in school B, and use μ2 to denote the average score in school C, and use μ3 to denote the average score in school C.
+
+$$
+H_0: \mu_0 = \mu_1 = \mu_2 = \mu_3 \\
+H_1: Not\ all\ population\ means\ are\ equal
+$$
+```{r}
+out<-TukeyHSD(out1)
+print(out)
+```
+      Tukey multiple comparisons of means
+        95% family-wise confidence level
+
+    Fit: aov(formula = y ~ a, data = df2)
+
+    $a
+              diff        lwr        upr     p adj
+    B-A -3.7480769  -9.309208  1.8130542 0.2956531
+    C-A -6.8125000 -13.083866 -0.5411339 0.0279092
+    D-A -4.1828947 -10.172889  1.8070994 0.2656041
+    C-B -3.0644231  -9.005482  2.8766360 0.5315159
+    D-B -0.4348178  -6.078060  5.2084242 0.9970432
+    D-C  2.6296053  -3.714686  8.9738967 0.6976127
+
+From the above result, we can see that the p-value of average score of school A and C = 0.0279092 < 0.05. We reject the null hypothesis of μ1=μ3. Thus the average score of school A and C differs.
+
+##14.65
+###a
+    We use one way ANOVA to determine whether the average speed of promotion in different companies differs.
+    To use one way ANOVA, we first check the required conditions.
+    1. Check if the populations are normal distributed.
+    We use Sharpiro-Wilk test method to see if the speed of promotion in different comanies normally distributed.
+
+$$
+H0 : the\ popuation\ is\ normally\ distributed.\\
+H1 : the\ popuation\ is\ not\ normally\ distributed.\
+$$
+
+```{R}
+df3 = read.csv("Xr14-65.csv", header=T)
+z<-as.list(df3)
+s1 = shapiro.test(z[[1]])
+s2 = shapiro.test(z[[2]])
+s3 = shapiro.test(z[[3]])
+print(s1)
+print(s2)
+print(s3)
+```
+
+    Since all of the p-values are larger than 0.05, at the 0.05 significance level, we can't reject null hypothesis. Thus, we don't have enough evidence to say that the populations are not  normal distributed.
+
+    2. Check if the population variaces are equal.
+    We use bartlett test to compare the variances of the populations.
+
+$$
+H_0: \sigma_0 = \sigma_1 = \sigma_2 = \sigma_3 \\
+H_1: Not\ all\ population\ variances\ are\ equal
+$$
+
+```{R}
+z <-as.list(df3)
+len<-c(0:0)
+for(i in 1:length(z))
+{
+  z[[i]]<-z[[i]][!is.na(z[[i]])]
+  len[i]<-length(z[[i]])
+}
+df4<-data.frame(y=c(z[[1]], z[[2]], z[[3]]), a=factor(c(rep("s", len[1]), rep("m", len[2]), rep("l", len[3]))))
+out3=bartlett.test(y~a, data=df4)
+print(out3)
+```
+    Since p-value = 0.55 > 0.05, we can't reject the null hypothesis. Thus, we don't have enough evidence to say that not all population variances are equal.
+
+    Now we can use one way ANOVA to determine whether the average speed of promotion in different companies differs.
+    We use $\mu_0$ to denote the average speed of promotion in small company, and use $\mu_1$ to denote the average speed of promotion in medium company, and use $\mu_2$ to denote the average speed of promotion in small company.
+
+$$
+H_0: \mu_0 = \mu_1 = \mu_2 = \mu_3 \\
+H_1: Not\ all\ population\ means\ are\ equal
+$$
+
+```{R}
+model2<-aov(y~a, data = df4)
+print(summary(model2))
+```
+
+                Df Sum Sq Mean Sq F value Pr(>F)  
+    a            2   1178     589   3.704 0.0286 *
+    Residuals   87  13836     159                 
+    ---
+    Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Since p-value = 0.0286 < 0.05, we can reject null hypothesis. Thus, we have enough evidence to say the average speed of promotion in different kind of companies differs.
+###b
+    We use Tukey’s multiple comparison method to find which pair of means differ.
+    We use $\mu_0$ to denote the average promotion speed in small company, and use $\mu_1$ to denote the average promotion speed in median company, and use $\mu_2$ to denote the average promotion speed in large company.
+    
+$$
+H_0: \mu_0 = \mu_1 = \mu_2 \\
+H_1: Not\ all\ population\ means\ are\ equal
+$$
+
+```{R}
+out4<-TukeyHSD(model2)
+print(out4)
+```
+      Tukey multiple comparisons of means
+        95% family-wise confidence level
+
+    Fit: aov(formula = y ~ a, data = df4)
+
+    $a
+            diff       lwr      upr     p adj
+    m-l 5.033333 -2.730755 12.79742 0.2748144
+    s-l 8.833333  1.069245 16.59742 0.0217071
+    s-m 3.800000 -3.964089 11.56409 0.4759718
+From the above result, we can see that the p-value of the difference of average promotion speed between small and large  company = 0.0217071 < 0.05.
+We reject the null hypothesis of $\mu_0 = \mu_2$. Thus the average promotion speed in small and large company differs.
+
+##14.89
+    H0: μb1=μb2=μb3=μb4
+    H1: Not all the means for four blocks are equal
+    μb1:the mean for student 1
+    μb2:the mean for student 2
+    μb3:the mean for student 3
+    μb4:the mean for student 4
+```{r}
+data1 = read.csv("Xr14-89.csv", header=T)
+nobs = nrow(data1)
+a=c(rep("Professor", nobs), rep("Male", nobs), rep("Female", nobs))
+block=rep(1:4,3)
+df1=data.frame(y=c(data1[,2], data1[,3], data1[,4]), treatment=factor(a), block=factor(block))
+print(df1)
+
+out1=aov(y~treatment+block, data=df1)
+print(summary(out1))
+```
+    Since the p-value is 0.00109(smaller than 0.05), we reject H0 in favor of H1— that is, there is sufficient evidence to support the claim that there are differences in the errors between the students.
+    Since the p-value is 0.05123(smaller than 0.05), we reject H0 in favor of H1— that is, there is not sufficient evidence to support the claim that there are differences in the errors between the subject.
+
+##14.95
+    H0: μb1=μb2=μb3=...=μb200
+    H1: Not all the means for four blocks are equal
+    μb1:the mean for teenager 1
+    μb2:the mean for teenager 2
+    μb3:the mean for teenager 3
+    ...
+    μb200:the mean for teenager 200
+```{r}
+data1 = read.csv("Xr14-95.csv", header=T)
+nobs = nrow(data1)
+a=c(rep("Sunday", nobs), rep("Monday", nobs), rep("Tuesday", nobs), rep("Wednesday", nobs), rep("Thursday", nobs), rep("Friday", nobs), rep("Saturday", nobs))
+block=rep(1:200,7)
+df1=data.frame(y=c(data1[,2], data1[,3], data1[,4], data1[,5], data1[,6], data1[,7], data1[,8]), treatment=factor(a), block=factor(block))
+print(df1)
+
+out1=aov(y~treatment+block, data=df1)
+print(summary(out1))
+```
+    Since the p-value is  5.14e-13(smaller than 0.05), we reject H0 in favor of H1— that is, there is sufficient evidence to support the claim that the amount of time they spend listening to music varies by the day of the week.
+    Since the p-value is  < 2e-16(smaller than 0.05), we reject H0 in favor of H1— that is, there is not sufficient evidence to support the claim that the amount of time they spend listening to music varies by which teenager is asked.
+
+
+
+

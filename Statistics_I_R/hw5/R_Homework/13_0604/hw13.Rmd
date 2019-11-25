@@ -1,0 +1,251 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics XIII Homework Ch20_Textbook
+##20.01
+```{r}
+#data processing
+data1 <- read.csv("Xr20-01.csv",header = 1)
+timeseries1 <- data1$Time.series
+
+#line chart
+n <- length(timeseries1)
+period1 <- vector("integer",length = n)
+for(i in 1:n)
+{
+  period1[i] <- i-1
+}
+plot(period1, timeseries1, col = "green", main = "Time Series against Period", xlab = "period", ylab = "time series", xlim=range(period1), ylim=range(timeseries1))
+lines(period1, timeseries1, type="o")
+abline(lm(timeseries1 ~ period1), col = "green")
+
+```
+
+```{r}
+Moving_Average <- function(x, n) {
+   k <- length(x)
+   y <- vector("double", length = k + 1)
+   lb = n + 1
+   ub = k + 1
+   for(i in lb:ub) {
+       sum_x = 0
+      lb_mv = i - n
+      ub_mv = i - 1
+      for(j in lb_mv:ub_mv){
+         sum_x <- sum_x + x[j]
+         }
+      y[i] <- sum_x / n
+   }
+   return(y)
+}
+n <- length(timeseries1)
+MV_y <- Moving_Average(timeseries1, 3)
+MV_y[MV_y == 0] <- NA
+plot(period1, timeseries1, col = "red", main = "Time Series against Period", xlab = "period", ylab = "time series")
+lines(period1, timeseries1, type="o", col = "blue")
+lines(MV_y, type="o", col = "red")
+cat("####3-period moving averages results####","\n")
+print(MV_y)
+```
+
+From the printout, we can forecast that the time series of the next period is 39.66667.
+
+##20.7
+```{r}
+#data processing
+data2 <- read.csv("Xr20-07.csv",header = 1)
+timeseries2 <- data2$Time.series
+
+#line chart
+n <- length(timeseries2)
+period2 <- vector("integer",length = n)
+for(i in 1:n)
+{
+  period2[i] <- i-1
+}
+plot(period2, timeseries2, col = "green", main = "Time Series against Period", xlab = "period", ylab = "time series", xlim=range(period2), ylim=range(timeseries2))
+lines(period2, timeseries2, type="o")
+abline(lm(timeseries2 ~ period2), col = "green")
+```
+
+```{r}
+n <- length(timeseries2)
+Exponential_Smoothing <- function(x, a) {
+   k <- length(x)
+   y <- vector("double", length = k + 1)
+   y[1] = x[1]
+   ub_es = k+1
+   for(i in 2:ub_es) {
+      j <- i - 1
+      y[i] <- a * x[j] + (1-a) * y[j]
+   }
+   return(y)
+}
+
+ES_y <- Exponential_Smoothing(timeseries2, 0.1)
+ES_y[ES_y == 0] <- NA
+plot(period2, timeseries2, col = "red", main = "Time Series against Period", xlab = "period", ylab = "time series")
+lines(period2, timeseries2, type="o", col = "blue")
+lines(ES_y, type="o", col = "red")
+
+cat("####exponential smoothing####","\n")
+print(ES_y)
+```
+
+From the printout, we can forecast that the time series of the next period is 16.51171.
+
+##EST
+###For 20.1
+Apply EST with $\alpha$  = 0.8 and $\beta$ = 0.2.($F_0$ = $Y_0$ = 42, $ET_0$ = 1)
+```{r}
+Exponential_Smoothing_with_Trend <- function(x, a, b, f, l) {
+   k <- length(x)
+   y <- vector("double", length = k + 1)
+   LT <- vector("double", length = k + 1)
+   ET <- vector("double", length = k + 1)
+   y[1] <- f + l
+   LT[1] <- a * (x[1] - f) + (1-a) * (y[1] - f)
+   ET[1] <- b * LT[1] + (1-b) * l
+   ub_es = k + 1
+   for(i in 2:k) {
+      j <- i - 1
+      y[i] <- a * x[j] + (1-a) * y[j] + ET[j]
+      LT[i] <- a * (x[i] - x[j]) + (1-a) * (y[i] - y[j])
+      ET[i] <- b * LT[i] + (1-b) * ET[j]
+   }
+   y[ub_es] <- a * x[k] + (1-a) * y[k] + ET[k]
+   return(y)
+}
+n <- length(timeseries1)
+EST_y <- Exponential_Smoothing_with_Trend(timeseries1, 0.8, 0.2, 42, 1)
+EST_y[EST_y == 0] <- NA
+
+plot(period1, timeseries1, col = "red", main = "Time Series against Period", xlab = "period", ylab = "time series")
+lines(period1, timeseries1, type="o", col = "blue")
+lines(EST_y, type="o", col = "red")
+cat("# # # # The Exponential Smoothing with Trend results # # # ","\n")
+print(EST_y)
+
+```
+
+From the printout, we can forecast that the time series of the next period is 30.15460.
+
+###For 20.7
+Apply EST with $\alpha$  = 0.8 and $\beta$ = 0.2.($F_0$ = $Y_0$ = 18, $ET_0$ = 2)
+```{r}
+n <- length(timeseries2)
+EST_y <- Exponential_Smoothing_with_Trend(timeseries2, 0.8, 0.2, 18, 2)
+EST_y[EST_y == 0] <- NA
+
+plot(period2, timeseries2, col = "red", main = "Time Series against Period", xlab = "period", ylab = "time series")
+lines(period2, timeseries2, type="o", col = "blue")
+lines(EST_y, type="o", col = "red")
+cat("# # # # The Exponential Smoothing with Trend results # # # ","\n")
+print(EST_y)
+```
+
+From the printout, we can forecast that the time series of the next period is 15.33831.
+
+##Compare 3 results
+###For 20.1
+```{r}
+Mean_Absolute_Deviation <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      Sum_E <- Sum_E + abs(x[i] - y[i])
+   }
+   MAD <- Sum_E / (k - s + 1)
+   return(MAD)
+}
+Mean_Square_Error <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      Sum_E <- Sum_E + (x[i] - y[i])^2
+   }
+   MSE <- Sum_E / (k - s + 1)
+   return(MSE)
+}
+Mean_Absolute_Percentage_Error <- function(x, y, s) {
+   k <- length(x)
+   Sum_E <- 0
+   for(i in s:k) {
+      if(x[i] != 0) {
+         Sum_E <- Sum_E + abs(x[i] - y[i])/x[i]
+      } else {
+         Sum_E <- Sum_E + abs(x[i] - y[i])/mean(x)
+         }	
+     }
+   MAPE <- Sum_E / (k - s + 1) * 100
+   return(MAPE)
+}
+###
+MV_y <- Moving_Average(timeseries1, 3)
+ES_y <- Exponential_Smoothing(timeseries1, 0.8)
+EST_y <- Exponential_Smoothing_with_Trend(timeseries1, 0.8, 0.2, 42, 1)
+###
+MV_MAD <- Mean_Absolute_Deviation(timeseries1, MV_y, 4)
+MV_MSE <- Mean_Square_Error(timeseries1, MV_y, 4)
+MV_MAPE <- Mean_Absolute_Percentage_Error(timeseries1, MV_y, 4)
+ES_MAD <- Mean_Absolute_Deviation(timeseries1, ES_y, 4)
+ES_MSE <- Mean_Square_Error(timeseries1, ES_y, 4)
+ES_MAPE <- Mean_Absolute_Percentage_Error(timeseries1, ES_y, 4)
+EST_MAD <- Mean_Absolute_Deviation(timeseries1, EST_y, 4)
+EST_MSE <- Mean_Square_Error(timeseries1, EST_y, 4)
+EST_MAPE <- Mean_Absolute_Percentage_Error(timeseries1, EST_y, 4)
+Error_M <- matrix(nrow = 3, ncol = 3)
+colnames(Error_M) = c("3-MA", "ES", "EST")
+rownames(Error_M) = c("MAD", "MSE", "MAPE")
+Error_M[1,1] <- MV_MAD
+Error_M[1,2] <- ES_MAD
+Error_M[1,3] <- EST_MAD
+Error_M[2,1] <- MV_MSE
+Error_M[2,2] <- ES_MSE
+Error_M[2,3] <- EST_MSE
+Error_M[3,1] <- MV_MAPE
+Error_M[3,2] <- ES_MAPE
+Error_M[3,3] <- EST_MAPE
+cat("     ","\n")
+cat("# # # # Error Metrix # # # ","\n")
+print(Error_M)
+```
+
+From the prontout, the best forecast method for 20.1 is Exponential Smoothing(0.8).
+
+###For 20.7
+```{r}
+MV_y <- Moving_Average(timeseries2, 3)
+ES_y <- Exponential_Smoothing(timeseries2, 0.8)
+EST_y <- Exponential_Smoothing_with_Trend(timeseries2, 0.8, 0.2, 18, 2)
+###
+MV_MAD <- Mean_Absolute_Deviation(timeseries2, MV_y, 4)
+MV_MSE <- Mean_Square_Error(timeseries2, MV_y, 4)
+MV_MAPE <- Mean_Absolute_Percentage_Error(timeseries2, MV_y, 4)
+ES_MAD <- Mean_Absolute_Deviation(timeseries2, ES_y, 4)
+ES_MSE <- Mean_Square_Error(timeseries2, ES_y, 4)
+ES_MAPE <- Mean_Absolute_Percentage_Error(timeseries2, ES_y, 4)
+EST_MAD <- Mean_Absolute_Deviation(timeseries2, EST_y, 4)
+EST_MSE <- Mean_Square_Error(timeseries2, EST_y, 4)
+EST_MAPE <- Mean_Absolute_Percentage_Error(timeseries2, EST_y, 4)
+Error_M <- matrix(nrow = 3, ncol = 3)
+colnames(Error_M) = c("3-MA", "ES", "EST")
+rownames(Error_M) = c("MAD", "MSE", "MAPE")
+Error_M[1,1] <- MV_MAD
+Error_M[1,2] <- ES_MAD
+Error_M[1,3] <- EST_MAD
+Error_M[2,1] <- MV_MSE
+Error_M[2,2] <- ES_MSE
+Error_M[2,3] <- EST_MSE
+Error_M[3,1] <- MV_MAPE
+Error_M[3,2] <- ES_MAPE
+Error_M[3,3] <- EST_MAPE
+cat("     ","\n")
+cat("# # # # Error Metrix # # # ","\n")
+print(Error_M)
+```
+
+From the prontout, the best forecast method for 20.7 is 3-Period Moving Averages.
+

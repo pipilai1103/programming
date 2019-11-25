@@ -1,0 +1,173 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics III Homework Ch10_Textbook
+
+##10.5
+```{r}
+cat("consistency:\nif the difference between the estimator and the parameter grows smaller as the sample size grows larger, then this estimator is said to be consistent.")
+```
+
+
+##10.7
+```{r}
+cat("relative efficiency:\nif there are two or more unbiased estimators of a parameter, then the one whose variance is smaller has relative efficiency.")
+```
+##10.15
+###a
+```{r}
+m = 80
+zvalue = qnorm(1 - 0.05/2)
+sigxbar = 5/sqrt(25)
+lcl = m - zvalue*sigxbar
+ucl = m + zvalue*sigxbar
+cat("interval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+
+```
+###b
+```{r}
+m = 80
+zvalue = qnorm(1 - 0.05/2)
+sigxbar = 5/sqrt(100)
+lcl = m - zvalue*sigxbar
+ucl = m + zvalue*sigxbar
+cat("interval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+
+```
+###c
+```{r}
+m = 80
+zvalue = qnorm(1 - 0.05/2)
+sigxbar = 5/sqrt(400)
+lcl = m - zvalue*sigxbar
+ucl = m + zvalue*sigxbar
+cat("interval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+
+```
+###d
+the confidence interval range decreases as the sample size increases.
+
+##10.27
+```{r}
+rounds = c(3,41,17,1,33,37,18,15,17,12,29,51)
+mr = mean(rounds)
+zvalue = qnorm(1-0.05/2)
+sigxbar = 12/sqrt(12)
+lcl = mr - zvalue*sigxbar
+ucl = mr + zvalue*sigxbar
+cat("There is a 95% chance that the interval [",lcl,",",ucl,"] covers the mean number of rounds per year played by physicians.")
+```
+##10.35
+```{r}
+mcost = 1810
+zvalue = qnorm(1-0.05/2)
+sigxbar = 400/sqrt(64)
+lcl = mcost - zvalue*sigxbar
+ucl = mcost + zvalue*sigxbar
+cat("There is a 95% chance that the interval [",lcl,",",ucl,"] covers the average cost of all vacations.")
+
+```
+##10.39
+```{r}
+data <- read.csv("Xr10-39.csv",header = 1)
+times <- data$Time
+mtime = mean(times)
+zvalue = qnorm(1-0.05/2)
+sigxbar = 1.3/sqrt(50)
+lcl = mtime - zvalue*sigxbar
+ucl = mtime + zvalue*sigxbar
+cat("There is a 95% chance that the interval [",lcl,",",ucl,"] covers the mean assembly time for all cell phones.")
+```
+The interval range is narrow, which means the assembly time for the 50 cell phones tend to be concentrate.
+
+##10.53
+(do 10.51 & 10.52 first)
+
+##10.51
+###a
+```{r}
+zvalue = qnorm(1-0.1/2)
+sd1 = 10
+width = 1
+n1 = (zvalue*sd1/width)^2
+cat("sample size should >= ",n1,"\nwe choose 271 as our sample size.")
+```
+###b
+```{r}
+mm = 150
+sigxbar = sd1/sqrt(271)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nThere is a 90% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+```
+##10.52
+###a
+```{r}
+sd2 = 5
+sigxbar = sd2/sqrt(271)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nWhen the standard deviation is 5,\nThere is a 90% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+
+```
+###b
+```{r}
+sd3 = 20
+sigxbar = sd3/sqrt(271)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nWhen the standard deviation is 20,\nThere is a 90% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+```
+##10.53
+###a
+the interval range is so close to 2, but a little smaller than it.
+
+###b
+then the interval range becomes smaller than that of case a, since the sigxbar is smaller.
+
+###c
+then the interval range becomes larger than that of case a, since the sigxbar is larger.
+
+##10.55
+(do 10.54 first.)
+
+##10.54
+###a
+```{r}
+zvalue = qnorm(1-0.05/2)
+sd1 = 200
+width = 10
+n2 = (zvalue*sd1/width)^2
+cat("sample size should >= ",n2,"\nwe choose 1537 as the sample size.")
+```
+###b
+```{r}
+mm = 500
+sigxbar = sd1/sqrt(1537)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+```
+##10.55
+###a
+```{r}
+mm = 500
+sd2 = 100
+sigxbar = sd2/sqrt(1537)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+```
+###b
+```{r}
+mm = 500
+sd3 = 400
+sigxbar = sd3/sqrt(1537)
+lcl = mm - zvalue*sigxbar
+ucl = mm + zvalue*sigxbar
+cat("sigxbar = ",sigxbar,"\ninterval range = ",ucl-lcl,"\nThere is a 95% chance that the interval [",lcl,",",ucl,"] covers the population mean.")
+
+```
+From the result, we can see that the increasing of standard deviation will give a rise to sigxbar. Then it leads to the increasing of the interval range.

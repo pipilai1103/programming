@@ -1,0 +1,149 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Statistics III Homework Ch14_Textbook
+
+##14.09
+###a
+    We want to know if there are differences in grading standards between the 4 schools.
+    Hypothesis test:
+$$
+H_0:\mu_A=\mu_B=\mu_C=\mu_D    
+$$
+$$
+H_1:At\ least\ two\ means\ differ.
+$$
+
+
+```{r}
+data1 <- read.csv("Xr14-09.csv",header = 1)
+nobs = nrow(data1)
+df2=data.frame(y=c(data1[,1], data1[,2], data1[,3], data1[,4]),a=factor(c(rep("A", nobs), rep("B", nobs), rep("C", nobs),rep("D", nobs))))
+out1=aov(y~a, data=df2)
+print(summary(out1))
+
+```
+    Since p-value 0.0437 < 0.05, there is sifficient evidence to conclude that there are differences in grading standards between the 4 schools.
+###b
+    The required conditions for one-way ANOVA:
+    1. The populations are all normally distributed.
+    2. The variances of all the populations tested are equal.
+    3. The observations must be independent.
+    
+###c
+    1. Conduct Shapiro-Wilk test of normality to check if the populations are normally distributed.
+    Hypothesis test:
+    
+$$
+H_0:The\ distribution\ is\ normal.   
+$$
+
+$$
+H_1:The\ distribution\ is\ not\ normal.
+$$
+
+```{r}
+cat("school-A normality test:\n")
+s1=shapiro.test(data1[,1])
+print(s1)
+cat("school-B normality test:\n")
+s2=shapiro.test(data1[,2])
+print(s2)
+cat("school-C normality test:\n")
+s3=shapiro.test(data1[,3])
+print(s3)
+cat("school-D normality test:\n")
+s4=shapiro.test(data1[,4])
+print(s4)
+
+```
+    Since p-values are all > 0.05, there is not sufficient evidence to say that the distribution is not normal.
+    2. Conduct Bartlett's test to check if the variances of all the populations are equal.
+    Hypothesis test:
+
+$$
+H_0:\sigma^2_1=\sigma^2_2=\sigma^2_3=\sigma^2_4    
+$$
+
+$$
+H_1:At\ least\ two\ variances\ are\ different.
+$$
+```{r}
+out2=bartlett.test(y~a, data=df2)
+print(out2)
+```
+    Since p-value > 0.05, do not reject H0. The variances of the 4 treatments are equal.
+    3. The observations must be independent.
+    We know it from the question content.
+    
+    Thus, it appears that required conditions are satisfied.
+
+##14.17
+###a
+    We want to know if the leaf sizes differ between the 3 groups.
+    Hypothesis test:
+
+$$
+H_0:\mu_1=\mu_2=\mu_3    
+$$
+
+$$
+H_1:At\ least\ two\ means\ differ.
+$$
+```{r}
+data2 <- read.csv("Xr14-17.csv",header = 1)
+nobs = nrow(data2)
+
+df2=data.frame(y=c(data2[,1], data2[,2], data2[,3]),a=factor(c(rep("G1", nobs), rep("G2", nobs), rep("G3", nobs))))
+
+out2=aov(y~a, data=df2)
+print(summary(out2))
+
+```
+    Since p-value 2.84e-06 < 0.05,  there is sifficient evidence to conclude that the leaf sizes differ between the 3 groups.
+
+###b
+    We want to know if the amounts of nicotine differ in the 3 groups.
+    Hypothesis test:
+
+$$
+H_0:\mu_1=\mu_2=\mu_3    
+$$
+
+$$
+H_1:At\ least\ two\ means\ differ.
+$$
+```{r}
+nobs = nrow(data2)
+df3=data.frame(y=c(data2[,4], data2[,5], data2[,6]),a=factor(c(rep("G1", nobs), rep("G2", nobs), rep("G3", nobs))))
+
+out3=aov(y~a, data=df3)
+print(summary(out3))
+
+```
+    Since p-value <2e-16 < 0.05,  there is sifficient evidence to conclude that theamounts of nicotine differ in the 3 groups.
+
+##14.21
+
+    We want to know if there is sufficient evidence to infer that differences in commuting time exists between the 3 states.
+    Hypothesis test:
+
+$$
+H_0:\mu_1=\mu_2=\mu_3    
+$$
+
+$$
+H_1:At\ least\ two\ means\ differ.
+$$
+```{r}
+data3 <- read.csv("Xr14-21.csv",header = 1)
+nobs = nrow(data3)
+df4=data.frame(y=c(data3[,1], data3[,2], data3[,3]),a=factor(c(rep("Cl", nobs), rep("NY", nobs), rep("Tx", nobs))))
+
+out4=aov(y~a, data=df4)
+print(summary(out4))
+
+```
+    Since p-value 3.73e-16 < 0.05,  there is sifficient evidence to infer that differences in commuting time exists between the 3 states.
